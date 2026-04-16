@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAES Invierno 2026 — Puntajes por Percentil</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #faf9f6;
+    font-family: 'Source Serif 4', serif;
+    padding: 3rem 2.5rem 4rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 0.6rem;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 300;
+    color: #1a1a1a;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .byline {
+    font-size: 14px;
+    color: #777;
+    font-weight: 300;
+    margin-bottom: 0.4rem;
+    line-height: 1.6;
+  }
+  .note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #bbb;
+    margin-bottom: 2.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #e8e5df;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 1.2rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #444;
+  }
+  .legend-line {
+    width: 24px;
+    height: 2px;
+    border-radius: 1px;
+  }
+  .legend-line.dashed {
+    background: repeating-linear-gradient(90deg, #d4a030 0, #d4a030 5px, transparent 5px, transparent 9px);
+  }
+  .chart-wrap {
+    position: relative;
+    height: 420px;
+    margin-bottom: 1rem;
+  }
+  .source {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #ccc;
+    margin-top: 1.8rem;
+    border-top: 1px solid #e8e5df;
+    padding-top: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="kicker">PAES · Proceso de Admisión Invierno 2026</div>
+<h1>Puntajes por percentil según prueba</h1>
+<p class="byline">
+  La PAES (Prueba de Acceso a la Educación Superior) evalúa a los postulantes a universidades chilenas en cinco pruebas. El gráfico permite comparar el puntaje obtenido según la posición relativa del postulante respecto al total de rendidores, e inferir en qué prueba se alcanzan mejores resultados y cuál presenta mayor varianza.
+</p>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-line" style="background:#c0392b"></span>Comprensión Lectora</span>
+  <span class="legend-item"><span class="legend-line" style="background:#2471a3"></span>Matemática 1</span>
+  <span class="legend-item"><span class="legend-line" style="background:#1e8449"></span>Historia</span>
+  <span class="legend-item"><span class="legend-line" style="background:#7d3c98"></span>Ciencias</span>
+  <span class="legend-item"><span class="legend-line dashed"></span>Matemática 2</span>
+</div>
+
+<div class="chart-wrap">
+  <canvas id="chart" role="img" aria-label="Gráfico de líneas de puntajes PAES invierno 2026 por percentil">Puntajes de las 5 pruebas PAES según percentil del postulante.</canvas>
+</div>
+
+<p class="source">Fuente: tabla de puntajes PAES · Proceso de Admisión Invierno 2026 · Chile</p>
+
+<script>
+const raw = [
+[1,396,403,315,331,256],[2,422,412,349,350,278],[3,437,433,364,363,278],
+[4,465,446,364,369,298],[5,465,446,378,377,298],[6,475,460,378,387,317],[7,483,474,388,389,317],
+[8,491,486,388,399,317],[9,499,486,398,400,317],[10,499,495,398,403,336],[11,510,495,398,406,336],
+[12,510,502,408,407,336],[13,523,502,408,412,336],[14,523,509,408,412,336],[15,538,509,420,413,354],
+[16,538,516,420,418,354],[17,553,516,420,419,354],[18,553,527,435,422,354],[19,566,527,435,424,354],
+[20,566,539,435,425,354],[21,566,539,451,425,354],[22,575,554,451,431,371],[23,575,554,451,433,371],
+[24,583,568,451,438,371],[25,583,568,466,441,371],[26,583,579,466,444,371],[27,590,579,466,450,371],
+[28,590,579,478,453,371],[29,590,588,478,456,386],[30,598,588,478,463,386],[31,598,595,478,466,386],
+[32,598,595,488,469,386],[33,608,602,488,478,386],[34,608,602,488,478,386],[35,608,602,495,480,386],
+[36,621,609,495,487,400],[37,621,609,495,488,400],[38,621,619,495,488,400],[39,636,619,502,493,400],
+[40,636,619,502,494,400],[41,636,632,502,497,400],[42,652,632,511,498,400],[43,652,647,511,498,413],
+[44,652,647,511,501,413],[45,652,661,522,502,413],[46,665,661,522,505,413],[47,665,661,522,506,413],
+[48,665,673,522,511,413],[49,676,673,536,512,427],[50,676,683,536,517,427],[51,676,683,536,518,427],
+[52,676,683,551,521,427],[53,685,692,551,529,427],[54,685,692,551,531,443],[55,685,701,566,541,443],
+[56,685,701,566,545,443],[57,693,701,566,554,443],[58,693,712,579,557,443],[59,693,712,579,564,458],
+[60,703,726,579,568,458],[61,703,726,588,573,458],[62,703,741,588,575,458],[63,703,741,588,579,458],
+[64,716,741,596,582,471],[65,716,756,596,584,471],[66,716,756,603,586,471],[67,716,771,603,587,471],
+[68,732,771,603,590,482],[69,732,771,611,592,482],[70,732,784,611,598,482],[71,732,784,611,603,493],
+[72,748,798,622,606,493],[73,748,798,622,614,493],[74,748,798,636,617,493],[75,748,813,636,627,503],
+[76,763,813,636,638,503],[77,763,831,651,642,503],[78,763,831,651,650,515],[79,763,831,667,659,515],
+[80,777,850,667,660,529],[81,777,850,680,666,529],[82,777,850,680,670,529],[83,790,870,691,674,544],
+[84,790,870,691,676,544],[85,790,890,701,683,557],[86,803,890,701,691,557],[87,803,890,710,701,569],
+[88,803,912,710,707,569],[89,818,912,722,718,578],[90,818,912,736,730,588],[91,818,937,736,739,588],
+[92,836,937,752,749,599],[93,836,937,769,757,611],[94,836,965,785,766,626],[95,855,965,785,777,640],
+[96,855,965,799,790,654],[97,874,996,814,807,676],[98,893,996,848,823,701],[99,914,996,868,849,747]
+];
+
+const labels = raw.map(r => r[0]);
+
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label: 'CLEC',   data: raw.map(r=>r[1]), borderColor:'#c0392b', borderWidth:2, pointRadius:0, tension:0.3 },
+      { label: 'MATE 1', data: raw.map(r=>r[2]), borderColor:'#2471a3', borderWidth:2, pointRadius:0, tension:0.3 },
+      { label: 'HIST',   data: raw.map(r=>r[3]), borderColor:'#1e8449', borderWidth:2, pointRadius:0, tension:0.3 },
+      { label: 'CIEN',   data: raw.map(r=>r[4]), borderColor:'#7d3c98', borderWidth:2, pointRadius:0, tension:0.3 },
+      { label: 'MATE 2', data: raw.map(r=>r[5]), borderColor:'#d4a030', borderWidth:2, pointRadius:0, tension:0.3, borderDash:[6,4] },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Cantidad de personas (percentil)', color: '#999', font: { size: 12 } },
+        ticks: { color: '#aaa', font: { size: 11 }, maxTicksLimit: 20, autoSkip: true },
+        grid: { color: '#ece9e2' },
+        border: { color: '#ccc' }
+      },
+      y: {
+        min: 240,
+        max: 1010,
+        title: { display: true, text: 'Puntaje obtenido', color: '#999', font: { size: 12 } },
+        ticks: { color: '#aaa', font: { size: 11 }, stepSize: 100 },
+        grid: { color: '#ece9e2' },
+        border: { color: '#ccc' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
