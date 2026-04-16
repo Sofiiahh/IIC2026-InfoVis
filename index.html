@@ -56,7 +56,7 @@
     display: flex;
     gap: 14px;
     flex-wrap: wrap;
-    margin-bottom: 1.4rem;
+    margin-bottom: 2.5rem;
   }
 
   .badge {
@@ -87,26 +87,6 @@
     font-weight: 700;
   }
 
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.8rem;
-    margin-bottom: 1.2rem;
-    font-size: 1rem;
-    color: var(--ink);
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .legend-line {
-    width: 26px;
-    height: 3px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
   .chart-wrap {
     position: relative;
     width: 100%;
@@ -125,11 +105,14 @@
     fill: #1e1b17;
     font-weight: 400;
   }
+
+  /* Estilo igualado al eyebrow */
   .axis-title {
     font-family: 'Source Serif 4', serif;
-    font-size: 15px;
-    fill: #1e1b17;
-    font-style: italic;
+    font-size: 12px;
+    fill: var(--ink-light);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
     font-weight: 400;
   }
 
@@ -171,13 +154,6 @@
     </div>
   </div>
 </div>
-
-.badges {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-bottom: 2.5rem; /* Aumenta este valor para compensar el espacio vacío */
-}
 
 <div class="chart-wrap">
   <svg class="chart" viewBox="0 0 840 430" xmlns="http://www.w3.org/2000/svg" id="mainChart"></svg>
@@ -230,17 +206,16 @@ const COLORS = {
   }
 
   html += `<line class="axis-line" x1="${pad.left}" x2="${pad.left + cW}" y1="${pad.top + cH}" y2="${pad.top + cH}"/>`;
- 
+  
   for (let i = 0; i < n; i++) {
     const x = xPos(i);
     html += `<text class="axis-label" x="${x}" y="${pad.top + cH + 22}" text-anchor="middle">${xLabels[i]}</text>`;
     html += `<line stroke="#d4cfc8" stroke-width="1" x1="${x}" x2="${x}" y1="${pad.top + cH}" y2="${pad.top + cH + 6}"/>`;
   }
 
-// titulos
-  html += `<text class="axis-title" x="${pad.left + cW / 2}" y="${H - 6}" text-anchor="middle">Tramo de puntaje</text>`;
-  html += `<text class="axis-title" transform="rotate(-90,16,${pad.top + cH / 2})" x="16" y="${pad.top + cH / 2}" text-anchor="middle">Cantidad de personas</text>`;
- 
+  html += `<text class="axis-title" x="${pad.left + cW / 2}" y="${H - 10}" text-anchor="middle">Tramo de puntaje</text>`;
+  html += `<text class="axis-title" transform="rotate(-90,20,${pad.top + cH / 2})" x="20" y="${pad.top + cH / 2}" text-anchor="middle">Cantidad de personas</text>`;
+  
   for (const [name, values] of Object.entries(RAW.data)) {
     const color = COLORS[name];
     let d = '';
