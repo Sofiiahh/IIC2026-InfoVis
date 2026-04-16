@@ -29,15 +29,18 @@
     margin: 0 auto;
   }
 
+  /* Títulos y Contexto */
   .eyebrow { font-size: 0.95rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.8rem; }
   h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 1.2rem; }
   .description { font-size: 1.25rem; line-height: 1.5; color: #1e1b17; margin-bottom: 2.5rem; max-width: 780px; }
 
+  /* Simbología Minimalista */
   .minimal-legend { display: flex; gap: 2.5rem; margin-bottom: 1rem; }
   .legend-item { display: flex; align-items: center; gap: 10px; border-left: 4px solid; padding-left: 12px; }
   .legend-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
   .legend-value { font-size: 1.3rem; font-weight: 700; display: block; }
 
+  /* Gráfico */
   .chart-wrap { position: relative; width: 100%; margin-top: 2rem; }
   svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 
@@ -55,21 +58,20 @@
   <p class="eyebrow">Admisión Invierno 2026 · Reporte Estadístico</p>
   <h1>Distribución y brechas de rendimiento</h1>
   <p class="description">
-    Este gráfico permite comparar la densidad de resultados entre las pruebas de lenguaje y cálculo, 
-    identificando en qué niveles de puntaje se concentra el mayor volumen de postulantes.
+    Este análisis visualiza la frecuencia de resultados por tramos de 100 puntos, permitiendo identificar patrones de desempeño y la concentración de postulantes en los niveles de logro de cada competencia.
   </p>
 
   <div class="minimal-legend">
     <div class="legend-item" style="border-color: var(--clec);">
       <div>
         <span class="legend-label">Comprensión Lectora</span>
-        <span class="legend-value" style="color: var(--clec);">26.606 personas</span>
+        <span class="legend-value" style="color: var(--clec);">26.607 personas</span>
       </div>
     </div>
     <div class="legend-item" style="border-color: var(--mate1);">
       <div>
         <span class="legend-label">Matemática 1</span>
-        <span class="legend-value" style="color: var(--mate1);">25.031 personas</span>
+        <span class="legend-value" style="color: var(--mate1);">25.528 personas</span>
       </div>
     </div>
   </div>
@@ -85,8 +87,9 @@
 const RAW = {
   labels: ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"],
   data: {
-    "Comprensión Lectora": [5, 11, 294, 2219, 5558, 7347, 6953, 3803, 416],
-    "Matemática 1":        [0,  3, 176, 2427, 5465, 5546, 5001, 3435, 2978]
+    /* Datos actualizados según ArchivoC_Adm2026REG.csv (incluyendo puntajes 1000) */
+    "Comprensión Lectora": [5, 11, 294, 2219, 5558, 7347, 6953, 3803, 417],
+    "Matemática 1":        [0, 3, 176, 2427, 5465, 5546, 5001, 3435, 3475]
   }
 };
 
