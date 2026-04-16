@@ -29,18 +29,15 @@
     margin: 0 auto;
   }
 
-  /* Títulos y Contexto */
   .eyebrow { font-size: 0.95rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.8rem; }
   h1 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 1.2rem; }
   .description { font-size: 1.25rem; line-height: 1.5; color: #1e1b17; margin-bottom: 2.5rem; max-width: 780px; }
 
-  /* Simbología Minimalista */
   .minimal-legend { display: flex; gap: 2.5rem; margin-bottom: 1rem; }
   .legend-item { display: flex; align-items: center; gap: 10px; border-left: 4px solid; padding-left: 12px; }
   .legend-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
   .legend-value { font-size: 1.3rem; font-weight: 700; display: block; }
 
-  /* Gráfico */
   .chart-wrap { position: relative; width: 100%; margin-top: 2rem; }
   svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 
@@ -87,7 +84,6 @@
 const RAW = {
   labels: ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"],
   data: {
-    /* Datos actualizados según ArchivoC_Adm2026REG.csv (incluyendo puntajes 1000) */
     "Comprensión Lectora": [5, 11, 294, 2219, 5558, 7347, 6953, 3803, 417],
     "Matemática 1":        [0, 3, 176, 2427, 5465, 5546, 5001, 3435, 3475]
   }
