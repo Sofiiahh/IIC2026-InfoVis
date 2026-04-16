@@ -52,7 +52,6 @@
     margin-bottom: 1.6rem;
   }
 
-  /* Badges above the chart */
   .badges {
     display: flex;
     gap: 14px;
@@ -88,7 +87,6 @@
     font-weight: 700;
   }
 
-  /* Legend */
   .legend {
     display: flex;
     flex-wrap: wrap;
@@ -157,7 +155,6 @@
   en las pruebas de la PAES del proceso de admisión invierno 2026.
 </p>
 
-<!-- Badges ABOVE the chart -->
 <div class="badges">
   <div class="badge" style="border-color: var(--clec);">
     <div class="badge-bar" style="background: var(--clec);"></div>
@@ -175,16 +172,12 @@
   </div>
 </div>
 
-<div class="legend">
-  <div class="legend-item">
-    <div class="legend-line" style="background:var(--clec)"></div>
-    <span>Comprensión Lectora</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-line" style="background:var(--mate1)"></div>
-    <span>Matemática 1</span>
-  </div>
-</div>
+.badges {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem; /* Aumenta este valor para compensar el espacio vacío */
+}
 
 <div class="chart-wrap">
   <svg class="chart" viewBox="0 0 840 430" xmlns="http://www.w3.org/2000/svg" id="mainChart"></svg>
@@ -227,7 +220,6 @@ const COLORS = {
 
   let html = '';
 
-  // Grid lines
   const yStep = 1000;
   const yTickCount = yMax / yStep;
   for (let i = 0; i <= yTickCount; i++) {
@@ -237,21 +229,18 @@ const COLORS = {
     html += `<text class="axis-label" x="${pad.left - 12}" y="${y + 5}" text-anchor="end">${v.toLocaleString('es')}</text>`;
   }
 
-  // X axis baseline
   html += `<line class="axis-line" x1="${pad.left}" x2="${pad.left + cW}" y1="${pad.top + cH}" y2="${pad.top + cH}"/>`;
-
-  // X tick labels
+ 
   for (let i = 0; i < n; i++) {
     const x = xPos(i);
     html += `<text class="axis-label" x="${x}" y="${pad.top + cH + 22}" text-anchor="middle">${xLabels[i]}</text>`;
     html += `<line stroke="#d4cfc8" stroke-width="1" x1="${x}" x2="${x}" y1="${pad.top + cH}" y2="${pad.top + cH + 6}"/>`;
   }
 
-  // Axis titles
+// titulos
   html += `<text class="axis-title" x="${pad.left + cW / 2}" y="${H - 6}" text-anchor="middle">Tramo de puntaje</text>`;
   html += `<text class="axis-title" transform="rotate(-90,16,${pad.top + cH / 2})" x="16" y="${pad.top + cH / 2}" text-anchor="middle">Cantidad de personas</text>`;
-
-  // Lines and dots
+ 
   for (const [name, values] of Object.entries(RAW.data)) {
     const color = COLORS[name];
     let d = '';
