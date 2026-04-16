@@ -106,7 +106,6 @@
     font-weight: 400;
   }
 
-  /* Estilo igualado al eyebrow */
   .axis-title {
     font-family: 'Source Serif 4', serif;
     font-size: 12px;
@@ -156,7 +155,7 @@
 </div>
 
 <div class="chart-wrap">
-  <svg class="chart" viewBox="0 0 840 430" xmlns="http://www.w3.org/2000/svg" id="mainChart"></svg>
+  <svg class="chart" viewBox="0 0 840 450" xmlns="http://www.w3.org/2000/svg" id="mainChart"></svg>
 </div>
 
 <p class="source">Fuente: Base de datos abierta DEMRE · Proceso de Admisión Invierno 2026 · Chile</p>
@@ -177,8 +176,9 @@ const COLORS = {
 
 (function() {
   const svg = document.getElementById('mainChart');
-  const W = 840, H = 430;
-  const pad = { top: 24, right: 30, bottom: 60, left: 82 };
+  const W = 840, H = 450;
+  // Aumentamos el pad top para que el título de "Cantidad" quepa arriba
+  const pad = { top: 45, right: 30, bottom: 60, left: 82 };
   const cW = W - pad.left - pad.right;
   const cH = H - pad.top - pad.bottom;
 
@@ -214,7 +214,8 @@ const COLORS = {
   }
 
   html += `<text class="axis-title" x="${pad.left + cW / 2}" y="${H - 10}" text-anchor="middle">Tramo de puntaje</text>`;
-  html += `<text class="axis-title" transform="rotate(-90,20,${pad.top + cH / 2})" x="20" y="${pad.top + cH / 2}" text-anchor="middle">Cantidad de personas</text>`;
+  
+  html += `<text class="axis-title" x="${pad.left - 82}" y="${pad.top - 20}" text-anchor="start">Cantidad de personas</text>`;
   
   for (const [name, values] of Object.entries(RAW.data)) {
     const color = COLORS[name];
