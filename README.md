@@ -1,4 +1,4 @@
-# IIC2026-InfoVis
+# Proyecto InfoVis
 
 #### Integrantes: Carolina Lobos y Sofía Solorza
 #### Grupo: 16
