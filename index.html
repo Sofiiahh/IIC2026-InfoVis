@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAES de Invierno · Análisis de Desempeño 2026</title>
+<title>PAES de Invierno · Análisis de Desempeño</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
     --ink: #0d0b09;
     --ink-light: #3d3830;
     --rule: #c8c3bb;
-    --clec: #E69F00;
-    --mate1: #0072B2;
+    --invierno: #E69F00;
+    --regular: #0072B2;
   }
 
   body {
@@ -34,14 +34,13 @@
 
   .minimal-legend { display: flex; gap: 2.5rem; margin-bottom: 1rem; }
   .legend-item { display: flex; align-items: center; gap: 10px; border-left: 4px solid; padding-left: 12px; }
-  .legend-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
-  .legend-value { font-size: 1.3rem; font-weight: 700; display: block; }
+  .legend-label { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); font-weight: bold;}
 
   .chart-wrap { position: relative; width: 100%; margin-top: 2rem; }
   svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 
-  .axis-label { font-family: 'Source Serif 4', serif; font-size: 16px; fill: #4a453e; }
-  .axis-title { font-family: 'Source Serif 4', serif; font-size: 13px; fill: var(--ink-light); text-transform: uppercase; letter-spacing: 0.18em; }
+  .axis-label { font-family: 'Source Serif 4', serif; font-size: 14px; fill: #4a453e; }
+  .axis-title { font-family: 'Source Serif 4', serif; font-size: 13px; fill: var(--ink-light); text-transform: uppercase; letter-spacing: 0.18em; font-weight: bold;}
   .grid-line { stroke: var(--rule); stroke-width: 1; opacity: 0.5; }
   .axis-line { stroke: var(--rule); stroke-width: 1.5; }
 
@@ -51,23 +50,17 @@
 <body>
 
 <div class="header-container">
-  <h1>Distribución de puntajes PAES</h1>
+  <h1>La PAES de Invierno concentra un mayor porcentaje de puntajes de excelencia</h1>
   <p class="description">
-    Estadísticas PAES de Invierno 2026. Resultados obtenidos en las pruebas de admisión universitaria en las competencias de lenguaje y matemáticas.
+    Comparación porcentual del rendimiento en Matemática 1. En la prueba de invierno (menor presión), el 13,6% de los estudiantes superó los 900 puntos, casi el doble que en la PAES Regular (7,2%).
   </p>
 
   <div class="minimal-legend">
-    <div class="legend-item" style="border-color: var(--clec);">
-      <div>
-        <span class="legend-label">Comprensión Lectora</span>
-        <span class="legend-value" style="color: var(--clec);">26.607 personas</span>
-      </div>
+    <div class="legend-item" style="border-color: var(--invierno);">
+      <span class="legend-label" style="color: var(--invierno);">PAES Invierno (N=25.528)</span>
     </div>
-    <div class="legend-item" style="border-color: var(--mate1);">
-      <div>
-        <span class="legend-label">Matemática 1</span>
-        <span class="legend-value" style="color: var(--mate1);">25.528 personas</span>
-      </div>
+    <div class="legend-item" style="border-color: var(--regular);">
+      <span class="legend-label" style="color: var(--regular);">PAES Regular (N=244.676)</span>
     </div>
   </div>
 </div>
@@ -79,55 +72,72 @@
 <p class="source">Fuente: Dataset DEMRE · Proceso de Admisión 2026</p>
 
 <script>
+// Datos REALES extraídos de tu archivo ArchivoC_Adm2026REG.csv 
+// Expresados en porcentaje (%) para una comparación equitativa
 const RAW = {
   labels: ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"],
   data: {
-    "Comprensión Lectora": [5, 11, 294, 2219, 5558, 7347, 6953, 3803, 417],
-    "Matemática 1":        [0, 3, 176, 2427, 5465, 5546, 5001, 3435, 3475]
+    "PAES Invierno": [0.0, 0.0, 0.7,  9.5, 21.4, 21.7, 19.6, 13.5, 13.6],
+    "PAES Regular":  [0.0, 0.0, 1.6, 16.1, 30.3, 24.7, 12.4,  7.7,  7.2]
   }
 };
 
-const COLORS = { "Comprensión Lectora": "#E69F00", "Matemática 1": "#0072B2" };
+const COLORS = { "PAES Invierno": "#E69F00", "PAES Regular": "#0072B2" };
 
 (function() {
   const svg = document.getElementById('mainChart');
   const W = 840;
   const H = 475;
-  const pad = { top: 50, right: 20, bottom: 85, left: 75 };
+  const pad = { top: 30, right: 20, bottom: 60, left: 80 };
   const cW = W - pad.left - pad.right;
   const cH = H - pad.top - pad.bottom;
-  let yMax = 8000;
+  let yMax = 35; // Eje Y adaptado para llegar al 35%
   const n = RAW.labels.length;
 
-  function xPos(i) { return pad.left + (i / (n - 1)) * cW; }
-  function yPos(v) { return pad.top + cH - (v / yMax) * cH; }
+  const anchoSeccion = cW / n;
+  const anchoBarra = 25; 
 
   let html = '';
 
-  for (let v = 0; v <= yMax; v += 1000) {
-    const y = yPos(v);
-    html += `<line class="grid-line" x1="${pad.left}" x2="${pad.left + cW}" y1="${y}" y2="${y}"/>`;
-    html += `<text class="axis-label" x="${pad.left - 15}" y="${y + 6}" text-anchor="end">${v.toLocaleString('es')}</text>`;
+  for (let v = 0; v <= yMax; v = v + 5) {
+    const y = pad.top + cH - (v / yMax) * cH;
+    html += '<line class="grid-line" x1="' + pad.left + '" x2="' + (pad.left + cW) + '" y1="' + y + '" y2="' + y + '"/>';
+    html += '<text class="axis-label" x="' + (pad.left - 15) + '" y="' + (y + 5) + '" text-anchor="end">' + v + '%</text>';
   }
 
-  html += `<line class="axis-line" x1="${pad.left}" x2="${pad.left + cW}" y1="${pad.top + cH}" y2="${pad.top + cH}"/>`;
+  html += '<line class="axis-line" x1="' + pad.left + '" x2="' + (pad.left + cW) + '" y1="' + (pad.top + cH) + '" y2="' + (pad.top + cH) + '"/>';
   
-  for (let i = 0; i < n; i++) {
-    html += `<text class="axis-label" x="${xPos(i)}" y="${pad.top + cH + 30}" text-anchor="middle">${RAW.labels[i]}</text>`;
+  for (let i = 0; i < n; i = i + 1) {
+    const xTexto = pad.left + (i * anchoSeccion) + (anchoSeccion / 2);
+    html += '<text class="axis-label" x="' + xTexto + '" y="' + (pad.top + cH + 25) + '" text-anchor="middle">' + RAW.labels[i] + '</text>';
   }
 
-  html += `<text class="axis-title" x="${pad.left + cW / 2}" y="${H - 10}" text-anchor="middle">Tramo de Puntaje Obtenido</text>`;
-  html += `<text class="axis-title" x="${pad.left - 75}" y="${pad.top - 25}" text-anchor="start">Cantidad de personas</text>`;
+  html += '<text class="axis-title" x="' + (pad.left + cW / 2) + '" y="' + (H - 5) + '" text-anchor="middle">Tramo de Puntaje Obtenido</text>';
   
-  for (const [name, values] of Object.entries(RAW.data)) {
-    const color = COLORS[name];
-    let d = ''; 
-    for (let i = 0; i < n; i++) {
-      d += (i === 0 ? 'M' : 'L') + `${xPos(i)},${yPos(values[i])} `;
-    }
-    html += `<path d="${d}" fill="none" stroke="${color}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>`;
-    for (let i = 0; i < n; i++) {
-      html += `<circle cx="${xPos(i)}" cy="${yPos(values[i])}" r="4.5" fill="${color}" stroke="white" stroke-width="2"/>`;
+  const centroY = pad.top + (cH / 2);
+  html += '<text class="axis-title" transform="rotate(-90, 20, ' + centroY + ')" x="20" y="' + centroY + '" text-anchor="middle">Porcentaje de estudiantes</text>';
+  
+  for (let i = 0; i < n; i = i + 1) {
+    const xBase = pad.left + (i * anchoSeccion) + (anchoSeccion / 2);
+    let indiceGrupo = 0;
+    
+    for (const [nombre, valores] of Object.entries(RAW.data)) {
+      const color = COLORS[nombre];
+      const valor = valores[i];
+      
+      const alturaBarra = (valor / yMax) * cH;
+      const yBarra = pad.top + cH - alturaBarra;
+      
+      let xPos = xBase;
+      if (indiceGrupo === 0) {
+        xPos = xPos - anchoBarra - 2; 
+      } else {
+        xPos = xPos + 2; 
+      }
+
+      html += '<rect x="' + xPos + '" y="' + yBarra + '" width="' + anchoBarra + '" height="' + alturaBarra + '" fill="' + color + '"/>';
+      
+      indiceGrupo = indiceGrupo + 1;
     }
   }
 
