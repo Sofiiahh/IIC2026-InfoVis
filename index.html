@@ -29,7 +29,6 @@
   .legend-item { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.95rem; }
   .dot { width: 14px; height: 14px; border-radius: 4px; }
 
-
   .banner {
     background: var(--bg-card); border-radius: 12px; padding: 1.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -52,7 +51,6 @@
   .trend-up { color: #10b981; font-weight: 700; }
   .trend-down { color: #ef4444; font-weight: 700; }
 
-
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
   .chart-card { background: var(--bg-card); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
   .chart-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); }
@@ -63,6 +61,15 @@
   .axis-text { font-size: 11px; fill: var(--text-muted); font-weight: 500; }
   .axis-title { font-size: 12px; fill: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   
+  .footer { 
+    margin-top: 1rem; 
+    padding-top: 1.5rem; 
+    border-top: 1px solid var(--border-color);
+    text-align: right; 
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    font-style: italic;
+  }
 
   .hover-zone { fill: transparent; cursor: pointer; }
   .hover-zone:hover { fill: rgba(226, 232, 240, 0.4); }
@@ -74,6 +81,7 @@
     .banner-content { grid-template-columns: 1fr; gap: 1rem; }
     .banner-col { border-right: none; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
     .banner-col:last-child { border-bottom: none; }
+    .footer { text-align: center; }
   }
 </style>
 </head>
@@ -86,7 +94,7 @@
   </div>
 
   <div id="infoBanner" class="banner">
-    <div class="banner-placeholder">Pasa el cursor sobre los gráficos para ver el detalle comparativo por tramo...</div>
+    <div class="banner-placeholder">Haz clic sobre las columnas de los gráficos para ver el detalle comparativo por tramo...</div>
     <div class="banner-content">
       <div class="banner-col">
         <div class="banner-title">Tramo Seleccionado</div>
@@ -134,6 +142,10 @@
       <div class="svg-container"><svg id="svgClec"></svg></div>
     </div>
   </div>
+
+  <div class="footer">
+    Fuente: Elaboración propia basada en microdatos de DEMRE — Proceso de Admisión 2026 (Análisis comparativo de rendición Invierno y Regular).
+  </div>
 </div>
 
 <script>
@@ -163,7 +175,6 @@ function drawChart(svgId, data, yMax) {
   let stepX = cW / LABELS.length;
 
   let html = '';
-
   let midY = pad.t + (cH / 2);
   html = html + `<text class="axis-title" transform="rotate(-90, 15, ${midY})" x="15" y="${midY}" text-anchor="middle">Cantidad de estudiantes</text>`;
 
@@ -177,22 +188,19 @@ function drawChart(svgId, data, yMax) {
     }
   }
 
-  for (let i = 0; i < LABELS.length; i = i + 1) {
-    let label = LABELS[i];
-    let xCenter = pad.l + (i * stepX) + (stepX / 2);
+  for (let k = 0; k < LABELS.length; k = k + 1) {
+    let xCenter = pad.l + (k * stepX) + (stepX / 2);
+    let hInv = (data.inv[k] / yMax) * cH;
+    let hReg = (data.reg[k] / yMax) * cH;
     
-    let hInv = (data.inv[i] / yMax) * cH;
-    let hReg = (data.reg[i] / yMax) * cH;
+    html = html + `<rect class="bar bar-${k}" x="${xCenter - barW - 1}" y="${pad.t + cH - hInv}" width="${barW}" height="${hInv}" fill="${COLOR_INV}" rx="3"/>`;
+    html = html + `<rect class="bar bar-${k}" x="${xCenter + 1}" y="${pad.t + cH - hReg}" width="${barW}" height="${hReg}" fill="${COLOR_REG}" rx="3"/>`;
+    html = html + `<text class="axis-text" x="${xCenter}" y="${h - 5}" text-anchor="middle">${LABELS[k]}</text>`;
     
-    html = html + `<rect class="bar bar-${i}" x="${xCenter - barW - 1}" y="${pad.t + cH - hInv}" width="${barW}" height="${hInv}" fill="${COLOR_INV}" rx="3"/>`;
-    html = html + `<rect class="bar bar-${i}" x="${xCenter + 1}" y="${pad.t + cH - hReg}" width="${barW}" height="${hReg}" fill="${COLOR_REG}" rx="3"/>`;
-    
-    html = html + `<text class="axis-text" x="${xCenter}" y="${h - 5}" text-anchor="middle">${label}</text>`;
-    
-    html = html + `<rect class="hover-zone" x="${pad.l + i * stepX}" y="${pad.t}" width="${stepX}" height="${cH}" 
-              onmouseenter="highlight(${i})" onmouseleave="resetHighlight()"/>`;
+    // Cambiado onmouseenter por onclick. Se eliminó onmouseleave para que quede seleccionado.
+    html = html + `<rect class="hover-zone" x="${pad.l + k * stepX}" y="${pad.t}" width="${stepX}" height="${cH}" 
+              onclick="highlight(${k})"/>`;
   }
-
   svg.innerHTML = html;
 }
 
@@ -200,21 +208,20 @@ function highlight(index) {
   let audioLapiz = document.getElementById("sonidoLapiz");
   audioLapiz.currentTime = 0;
   
-  let volumenBase = 0.2;
-  let aumentoPorTramo = index * 0.1;
+  // Volumen más notorio: empieza muy bajo y sube de forma más agresiva
+  let volumenBase = 0.05;
+  let aumentoPorTramo = index * 0.11;
   let volumenTotal = volumenBase + aumentoPorTramo;
   
-  if (volumenTotal > 1.0) {
-    volumenTotal = 1.0;
+  if (volumenTotal > 1.0) { 
+    volumenTotal = 1.0; 
   }
   
   audioLapiz.volume = volumenTotal;
   
   let promesa = audioLapiz.play();
   if (promesa !== undefined) {
-    promesa.catch(function(error) {
-      console.log("Esperando interacción del usuario en la página.");
-    });
+    promesa.catch(function(error) { console.log(error); });
   }
 
   let todasLasBarras = document.querySelectorAll('.bar');
@@ -227,45 +234,27 @@ function highlight(index) {
     barrasSeleccionadas[j].classList.remove('dimmed');
   }
 
-  let banner = document.getElementById('infoBanner');
-  banner.classList.add('active');
+  document.getElementById('infoBanner').classList.add('active');
 
   let mInv = DATA_MATE.inv[index];
   let mReg = DATA_MATE.reg[index];
   let mDiff = mReg - mInv;
-  
   let cInv = DATA_CLEC.inv[index];
   let cReg = DATA_CLEC.reg[index];
   let cDiff = cReg - cInv;
 
   document.getElementById('b-tramo').innerText = LABELS[index];
-  
   document.getElementById('bm-inv').innerText = mInv.toLocaleString('es-CL');
   document.getElementById('bm-reg').innerText = mReg.toLocaleString('es-CL');
   document.getElementById('bm-diff').innerHTML = formatDiff(mDiff);
-
   document.getElementById('bc-inv').innerText = cInv.toLocaleString('es-CL');
   document.getElementById('bc-reg').innerText = cReg.toLocaleString('es-CL');
   document.getElementById('bc-diff').innerHTML = formatDiff(cDiff);
 }
 
-function resetHighlight() {
-  let todasLasBarras = document.querySelectorAll('.bar');
-  for (let i = 0; i < todasLasBarras.length; i = i + 1) {
-    todasLasBarras[i].classList.remove('dimmed');
-  }
-  
-  let banner = document.getElementById('infoBanner');
-  banner.classList.remove('active');
-}
-
 function formatDiff(val) {
-  if (val > 0) {
-    return `<span class="trend-up">▲ +${val.toLocaleString('es-CL')} estudiantes</span>`;
-  }
-  if (val < 0) {
-    return `<span class="trend-down">▼ ${val.toLocaleString('es-CL')} estudiantes</span>`;
-  }
+  if (val > 0) return `<span class="trend-up">▲ +${val.toLocaleString('es-CL')} estudiantes</span>`;
+  if (val < 0) return `<span class="trend-down">▼ ${val.toLocaleString('es-CL')} estudiantes</span>`;
   return `<span class="stat-num">Sin variación</span>`;
 }
 
