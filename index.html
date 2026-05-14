@@ -68,7 +68,11 @@
     text-align: right; 
     color: var(--text-muted); 
     font-size: 0.85rem; 
-    font-style: italic;
+    line-height: 1.5;
+  }
+  .nota-autor {
+    color: var(--text-main);
+    font-weight: 500;
   }
 
   .hover-zone { fill: transparent; cursor: pointer; }
@@ -144,7 +148,8 @@
   </div>
 
   <div class="footer">
-    Fuente: Elaboración propia basada en microdatos de DEMRE — Proceso de Admisión 2026 (Análisis comparativo de rendición Invierno y Regular).
+    <i>Fuente: Elaboración propia basada en microdatos de DEMRE — Proceso de Admisión 2026 (Análisis comparativo de rendición Invierno y Regular).</i><br>
+    <span class="nota-autor"><b>Nota de autor:</b> Ten en consideración que el volumen de la interacción se intensifica según el tramo.</span>
   </div>
 </div>
 
@@ -197,7 +202,6 @@ function drawChart(svgId, data, yMax) {
     html = html + `<rect class="bar bar-${k}" x="${xCenter + 1}" y="${pad.t + cH - hReg}" width="${barW}" height="${hReg}" fill="${COLOR_REG}" rx="3"/>`;
     html = html + `<text class="axis-text" x="${xCenter}" y="${h - 5}" text-anchor="middle">${LABELS[k]}</text>`;
     
-    // Cambiado onmouseenter por onclick. Se eliminó onmouseleave para que quede seleccionado.
     html = html + `<rect class="hover-zone" x="${pad.l + k * stepX}" y="${pad.t}" width="${stepX}" height="${cH}" 
               onclick="highlight(${k})"/>`;
   }
@@ -208,13 +212,16 @@ function highlight(index) {
   let audioLapiz = document.getElementById("sonidoLapiz");
   audioLapiz.currentTime = 0;
   
-  // Volumen más notorio: empieza muy bajo y sube de forma más agresiva
-  let volumenBase = 0.05;
-  let aumentoPorTramo = index * 0.11;
-  let volumenTotal = volumenBase + aumentoPorTramo;
+  // Cálculo exponencial del volumen para que se note la diferencia real
+  let paso = index + 1; // Convierte el índice de 0-8 a pasos de 1-9
+  let multiplicador = paso * paso; // Eleva al cuadrado: 1, 4, 9, 16... hasta 81
+  let volumenTotal = multiplicador / 81; // El máximo será 81 / 81 = 1.0
   
   if (volumenTotal > 1.0) { 
     volumenTotal = 1.0; 
+  }
+  if (volumenTotal < 0.01) {
+    volumenTotal = 0.01;
   }
   
   audioLapiz.volume = volumenTotal;
