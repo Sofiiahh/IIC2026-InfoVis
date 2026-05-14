@@ -21,14 +21,16 @@
 
   .dashboard { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
 
-  .header { text-align: center; margin-bottom: 1rem; }
+  .header { text-align: center; margin-bottom: 0.5rem; }
   .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
   .header p { color: var(--text-muted); font-size: 1.1rem; }
 
-  .legend { display: flex; justify-content: center; gap: 2rem; margin-top: 1rem; }
+  /* Leyenda movida cerca de los gráficos */
+  .legend { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; margin-bottom: -0.5rem; }
   .legend-item { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.95rem; }
   .dot { width: 14px; height: 14px; border-radius: 4px; }
 
+  /* Banner Interactivo */
   .banner {
     background: var(--bg-card); border-radius: 12px; padding: 1.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -51,6 +53,7 @@
   .trend-up { color: #10b981; font-weight: 700; }
   .trend-down { color: #ef4444; font-weight: 700; }
 
+  /* Contenedor de gráficos */
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
   .chart-card { background: var(--bg-card); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
   .chart-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); }
@@ -59,7 +62,9 @@
   svg { width: 100%; height: 100%; overflow: visible; }
   .grid-line { stroke: #f1f5f9; stroke-width: 1.5; }
   .axis-text { font-size: 11px; fill: var(--text-muted); font-weight: 500; }
+  .axis-title { font-size: 12px; fill: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   
+  /* Zonas interactivas */
   .hover-zone { fill: transparent; cursor: pointer; }
   .hover-zone:hover { fill: rgba(226, 232, 240, 0.4); }
   .bar { transition: opacity 0.2s; }
@@ -79,10 +84,6 @@
   <div class="header">
     <h1>Evolución del Puntaje en Estudiantes Duales</h1>
     <p>Comparación exclusiva de alumnos que rindieron ambas pruebas en el mismo proceso (Invierno y Regular).</p>
-    <div class="legend">
-      <div class="legend-item"><div class="dot" style="background: var(--color-invierno);"></div>PAES Invierno</div>
-      <div class="legend-item"><div class="dot" style="background: var(--color-regular);"></div>PAES Regular</div>
-    </div>
   </div>
 
   <div id="infoBanner" class="banner">
@@ -97,7 +98,7 @@
         </div>
       </div>
       <div class="banner-col">
-        <div class="banner-title">Matemática 1 (N=17.059)</div>
+        <div class="banner-title">Matemática 1 (Total: 17.059 estudiantes)</div>
         <div class="stat-row"><span class="stat-label">Regular:</span><span class="stat-num" id="bm-reg">-</span></div>
         <div class="stat-row"><span class="stat-label">Invierno:</span><span class="stat-num" id="bm-inv">-</span></div>
         <div class="stat-row" style="margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
@@ -105,7 +106,7 @@
         </div>
       </div>
       <div class="banner-col">
-        <div class="banner-title">Comprensión Lectora (N=18.269)</div>
+        <div class="banner-title">Comprensión Lectora (Total: 18.269 estudiantes)</div>
         <div class="stat-row"><span class="stat-label">Regular:</span><span class="stat-num" id="bc-reg">-</span></div>
         <div class="stat-row"><span class="stat-label">Invierno:</span><span class="stat-num" id="bc-inv">-</span></div>
         <div class="stat-row" style="margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
@@ -113,6 +114,11 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot" style="background: var(--color-invierno);"></div>PAES Invierno</div>
+    <div class="legend-item"><div class="dot" style="background: var(--color-regular);"></div>PAES Regular</div>
   </div>
 
   <div class="charts-grid">
@@ -143,11 +149,12 @@ const COLOR_REG = "#3b82f6";
 const Y_MAX_M = 4500;
 const Y_MAX_C = 6000;
 
-function drawChart(svgId, data, yMax, prefix) {
+function drawChart(svgId, data, yMax) {
   const svg = document.getElementById(svgId);
   const w = svg.clientWidth || 500;
   const h = 350;
-  const pad = { t: 10, r: 10, b: 30, l: 40 };
+  // Aumentamos el margen izquierdo (pad.l) para que quepa el título del eje Y
+  const pad = { t: 10, r: 10, b: 30, l: 65 };
   const cW = w - pad.l - pad.r;
   const cH = h - pad.t - pad.b;
   const barW = (cW / LABELS.length) * 0.35;
@@ -155,14 +162,20 @@ function drawChart(svgId, data, yMax, prefix) {
 
   let html = '';
 
+  // Título Eje Y rotado
+  const midY = pad.t + (cH / 2);
+  html += `<text class="axis-title" transform="rotate(-90, 15, ${midY})" x="15" y="${midY}" text-anchor="middle">Cantidad de estudiantes</text>`;
+
+  // Grilla Y
   const steps = 5;
   for (let i = 0; i <= steps; i++) {
     const val = (yMax / steps) * i;
     const y = pad.t + cH - (val / yMax) * cH;
     html += `<line class="grid-line" x1="${pad.l}" x2="${pad.l + cW}" y1="${y}" y2="${y}"/>`;
-    if (i > 0) html += `<text class="axis-text" x="${pad.l - 8}" y="${y + 4}" text-anchor="end">${val}</text>`;
+    if (i > 0) html += `<text class="axis-text" x="${pad.l - 8}" y="${y + 4}" text-anchor="end">${val.toLocaleString('es-CL')}</text>`;
   }
 
+  // Barras y Eje X
   LABELS.forEach((label, i) => {
     const xCenter = pad.l + (i * stepX) + (stepX / 2);
     
@@ -182,20 +195,16 @@ function drawChart(svgId, data, yMax, prefix) {
 }
 
 function highlight(index) {
-  // Atenuar otras barras
   document.querySelectorAll('.bar').forEach(b => b.classList.add('dimmed'));
   document.querySelectorAll(`.bar-${index}`).forEach(b => b.classList.remove('dimmed'));
 
-  // Activar banner
   const banner = document.getElementById('infoBanner');
   banner.classList.add('active');
 
-  // Llenar datos de Matemática
   const mInv = DATA_MATE.inv[index];
   const mReg = DATA_MATE.reg[index];
   const mDiff = mReg - mInv;
   
-  // Llenar datos de Lenguaje
   const cInv = DATA_CLEC.inv[index];
   const cReg = DATA_CLEC.reg[index];
   const cDiff = cReg - cInv;
@@ -223,9 +232,10 @@ function formatDiff(val) {
 }
 
 function init() {
-  drawChart('svgMate', DATA_MATE, Y_MAX_M, 'm');
-  drawChart('svgClec', DATA_CLEC, Y_MAX_C, 'c');
+  drawChart('svgMate', DATA_MATE, Y_MAX_M);
+  drawChart('svgClec', DATA_CLEC, Y_MAX_C);
 }
+
 window.onload = init;
 window.onresize = init;
 </script>
