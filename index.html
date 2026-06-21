@@ -140,33 +140,28 @@ function drawChart(){
     if (i>0) html += `<text class="axis-text" x="${pad.l-10}" y="${y+4}" text-anchor="end">${Math.round(val).toLocaleString('es-CL')}</text>`;
   }
 
-  // puntos
+
   const pts = data.map((v,k)=>({ x: pad.l + k*stepX, y: pad.t + cH - (v/yMax)*cH }));
 
-  // área
   const linePath = smoothPath(pts);
   const areaPath = `${linePath} L ${pts[pts.length-1].x},${pad.t+cH} L ${pts[0].x},${pad.t+cH} Z`;
   html += `<path class="area-path" d="${areaPath}" fill="url(#grad)"/>`;
   html += `<path class="line-path" d="${linePath}"/>`;
 
-  // etiquetas eje X
   for (let k=0;k<LABELS.length;k++){
     html += `<text class="axis-text" x="${pts[k].x}" y="${h-8}" text-anchor="middle">${LABELS[k]}</text>`;
   }
 
-  // guía vertical
   if (hovered!==null){
     html += `<line class="guide show" x1="${pts[hovered].x}" x2="${pts[hovered].x}" y1="${pad.t}" y2="${pad.t+cH}"/>`;
   }
 
-  // dots
   for (let k=0;k<LABELS.length;k++){
     const act = (hovered===k) ? ' active' : '';
     const r = (hovered===k) ? 7 : 4.5;
     html += `<circle class="dot${act}" cx="${pts[k].x}" cy="${pts[k].y}" r="${r}"/>`;
   }
 
-  // zonas hover
   for (let k=0;k<LABELS.length;k++){
     const x0 = pad.l + (k-0.5)*stepX;
     html += `<rect class="hover-zone" x="${Math.max(pad.l,x0)}" y="${pad.t}" width="${stepX}" height="${cH}" data-k="${k}" data-px="${pts[k].x}" data-py="${pts[k].y}"/>`;
