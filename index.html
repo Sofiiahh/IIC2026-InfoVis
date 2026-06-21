@@ -83,7 +83,7 @@
 
   <p class="conclusion">Superar los 700 puntos es más difícil de lo que parece: lo logra cerca de 1 de cada 4 personas en Matemática y solo 1 de cada 5 en Lenguaje. Aunque muchísimos rinden, los puntajes altos siguen siendo escasos.</p>
 
-  <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes.</p>
+  <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes. Solo suena mientras pasas el cursor sobre un punto.</p>
 
   <p class="source">Fuente: DEMRE — Rendición PAES, Proceso de Admisión 2026.</p>
 </div>
@@ -124,8 +124,8 @@ function niceStep(x){
 function drawChart(){
   const data = DATA[competencia];
   const maxData = Math.max(...data);
-  const step = niceStep(maxData / 4);
-  const yMax = Math.ceil(maxData / step) * step;
+  const step = niceStep(maxData / 4); 
+  const yMax = Math.ceil(maxData / step) * step; 
   const svg = document.getElementById('chart');
   const w = svg.clientWidth || 560, h = 400;
   const pad = { t: 46, r: 18, b: 50, l: 70 };
@@ -177,7 +177,9 @@ function drawChart(){
     html += `<circle class="dot${act}" cx="${pts[k].x}" cy="${pts[k].y}" r="${r}"/>`;
   }
   for (let k=0;k<LABELS.length;k++){
-    html += `<circle class="hit" cx="${pts[k].x}" cy="${pts[k].y}" r="20" data-k="${k}" data-px="${pts[k].x}" data-py="${pts[k].y}"/>`;
+    const left = Math.max(pad.l, pad.l + (k-0.5)*stepX);
+    const right = Math.min(pad.l+cW, pad.l + (k+0.5)*stepX);
+    html += `<rect class="hit" x="${left}" y="${pad.t}" width="${right-left}" height="${cH}" data-k="${k}" data-px="${pts[k].x}" data-py="${pts[k].y}"/>`;
   }
   svg.innerHTML = html;
   attachHover();
