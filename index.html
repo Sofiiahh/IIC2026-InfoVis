@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>¿Qué tan competitivo es cada puntaje? · PAES Regular 2026</title>
+<title>Distribución de Puntajes · PAES Regular 2026</title>
 <style>
   :root {
     --bg-page: #f4f6f8;
@@ -11,139 +11,99 @@
     --text-main: #1e293b;
     --text-muted: #64748b;
     --accent: #2563eb;
-    --accent-soft: #bfdbfe;
-    --amber: #f59e0b;
     --border-color: #e2e8f0;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-  body { background-color: var(--bg-page); color: var(--text-main); padding: 2rem 1rem; }
-  .dashboard { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
+  body { background-color: var(--bg-page); color: var(--text-main); padding: 2.5rem 1rem; }
+  .dashboard { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+
   .header { text-align: center; }
-  .header h1 { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.4rem; letter-spacing: -0.5px; }
-  .header p { color: var(--text-muted); font-size: 1.05rem; max-width: 720px; margin: 0 auto; line-height: 1.5; }
+  .header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.4rem; }
+  .header p { color: var(--text-muted); font-size: 1.02rem; max-width: 640px; margin: 0 auto; line-height: 1.5; }
 
-  .controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.75rem; }
-  .toggle-group { display: inline-flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 999px; padding: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-  .toggle-btn { border: none; background: transparent; padding: 0.55rem 1.3rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); border-radius: 999px; cursor: pointer; transition: all 0.2s ease; }
+  .toggle-group { display: inline-flex; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 999px; padding: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+  .toggle-btn { border: none; background: transparent; padding: 0.55rem 1.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); border-radius: 999px; cursor: pointer; transition: all 0.2s ease; }
   .toggle-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,0.35); }
-  .sound-btn { border: 1px solid var(--accent); background: #fff; color: var(--accent); padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.92rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; }
-  .sound-btn:hover { background: var(--accent); color: #fff; }
 
-  .main-grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 1.25rem; }
-  .card { background: var(--bg-card); border-radius: 14px; padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 8px -2px rgba(0,0,0,0.05); }
-  .chart-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
-  .chart-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
-  .legend { display: flex; gap: 1.25rem; margin-bottom: 0.5rem; font-size: 0.82rem; color: var(--text-muted); font-weight: 600; }
-  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
-  .swatch { width: 14px; height: 14px; border-radius: 4px; }
-  .swatch.line { height: 3px; border-radius: 2px; }
-
-  .svg-container { position: relative; width: 100%; height: 360px; }
+  .card { background: var(--bg-card); border-radius: 14px; padding: 1.75rem 1.5rem 1.25rem; border: 1px solid var(--border-color); box-shadow: 0 4px 8px -2px rgba(0,0,0,0.05); position: relative; }
+  .svg-container { position: relative; width: 100%; height: 380px; }
   svg { width: 100%; height: 100%; overflow: visible; }
   .grid-line { stroke: #f1f5f9; stroke-width: 1.5; }
   .axis-text { font-size: 11px; fill: var(--text-muted); font-weight: 500; }
   .axis-title { font-size: 11px; fill: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-  .bar { transition: opacity 0.25s, fill 0.25s; cursor: pointer; }
-  .bar.dimmed { opacity: 0.28; }
+  .bar { transition: opacity 0.2s, fill 0.2s; cursor: pointer; }
+  .bar.dimmed { opacity: 0.3; }
   .hover-zone { fill: transparent; cursor: pointer; }
-  .hover-zone:hover { fill: rgba(37,99,235,0.06); }
-  .cum-line { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linejoin: round; }
-  .cum-dot { fill: var(--amber); stroke: #fff; stroke-width: 2; }
 
-  /* Panel de insight */
-  .insight { display: flex; flex-direction: column; gap: 0.9rem; }
-  .insight-eyebrow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 700; }
-  .insight-tramo { font-size: 2.2rem; font-weight: 800; line-height: 1; }
-  .insight-tramo span { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
-  .metric { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 0.85rem 1rem; }
-  .metric-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; }
-  .metric-value { font-size: 1.5rem; font-weight: 800; margin-top: 2px; }
-  .metric-value.accent { color: var(--accent); }
-  .metric-value.amber { color: #d97706; }
-  .metric-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-  .narrative { font-size: 0.95rem; line-height: 1.5; color: var(--text-main); background: #eff6ff; border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 0.85rem 1rem; }
-  .placeholder-note { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
+  .tooltip {
+    position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -110%);
+    background: #0f172a; color: #fff; padding: 0.6rem 0.8rem; border-radius: 8px;
+    font-size: 0.82rem; line-height: 1.45; white-space: nowrap; transition: opacity 0.12s;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25); z-index: 10;
+  }
+  .tooltip.show { opacity: 1; }
+  .tt-tramo { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; }
+  .tt-row { color: #cbd5e1; }
+  .tt-row b { color: #fff; }
 
-  .footer { padding-top: 1rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.82rem; line-height: 1.6; }
+  .footer { text-align: center; color: var(--text-muted); font-size: 0.82rem; line-height: 1.6; }
   .footer b { color: var(--text-main); }
 
-  @media (max-width: 880px) {
-    .main-grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 560px){ .header h1 { font-size: 1.5rem; } }
 </style>
 </head>
 <body>
 <div class="dashboard">
   <div class="header">
-    <h1>¿Qué tan competitivo es cada puntaje?</h1>
-    <p>Distribución de estudiantes en la PAES Regular 2026. No basta con saber <i>cuántos</i> hay en cada tramo: al hacer clic descubres <b>en qué percentil te deja</b> ese puntaje.</p>
+    <h1>Distribución de Puntajes PAES Regular 2026</h1>
+    <p>Cuántos estudiantes obtuvo cada tramo de puntaje. Pasa el cursor por las barras para ver el detalle y escuchar el sonido del lápiz: <b>más fuerte donde hay más estudiantes</b>.</p>
   </div>
 
-  <div class="controls">
-    <div class="toggle-group">
-      <button class="toggle-btn active" id="btnMate" onclick="setCompetencia('mate')">Matemática 1</button>
-      <button class="toggle-btn" id="btnClec" onclick="setCompetencia('clec')">Comprensión Lectora</button>
-    </div>
-    <button class="sound-btn" onclick="playDistribution()">▶ Escuchar la distribución</button>
+  <div class="toggle-group">
+    <button class="toggle-btn active" id="btnMate" onclick="setCompetencia('mate')">Matemática 1</button>
+    <button class="toggle-btn" id="btnClec" onclick="setCompetencia('clec')">Comprensión Lectora</button>
   </div>
 
-  <div class="main-grid">
-    <div class="card">
-      <div class="chart-title" id="chartTitle">Matemática 1</div>
-      <div class="chart-sub">Cantidad de estudiantes por tramo de puntaje · PAES Regular 2026</div>
-      <div class="legend">
-        <div class="legend-item"><div class="swatch" style="background:var(--accent)"></div>Estudiantes por tramo</div>
-        <div class="legend-item"><div class="swatch line" style="background:var(--amber)"></div>% acumulado (percentil)</div>
-      </div>
-      <div class="svg-container"><svg id="chart"></svg></div>
-    </div>
-
-    <div class="card insight" id="insight">
-      <div class="insight-eyebrow">Selecciona un tramo</div>
-      <div class="placeholder-note" id="placeholder">
-        Haz clic en cualquier columna para ver qué porcentaje de estudiantes obtuvo ese puntaje
-        y por sobre cuántos te deja. Cada tramo suena en un <b>tono distinto</b> (grave = puntaje bajo,
-        agudo = puntaje alto) y con un <b>ritmo</b> según cuánta gente hay.
-      </div>
+  <div class="card">
+    <div class="svg-container">
+      <svg id="chart"></svg>
+      <div class="tooltip" id="tooltip"></div>
     </div>
   </div>
 
   <div class="footer">
     <i>Fuente: DEMRE — Datos de Rendición PAES, Proceso de Admisión 2026 (rendición Regular).</i><br>
-    <b>Sobre el sonido:</b> el <b>tono</b> representa el nivel del puntaje (grave→agudo a medida que sube el tramo)
-    y la <b>densidad de trazos de lápiz</b> representa cuántos estudiantes hay (más gente = más trazos seguidos).
-    El volumen se mantiene constante: la información está en el tono y el ritmo, no en qué tan fuerte suena.
+    <b>Sonido:</b> el volumen del lápiz aumenta con la cantidad de estudiantes del tramo, representando la presión académica de los rangos más numerosos.
   </div>
 </div>
 
+<audio id="sonidoLapiz" preload="auto">
+  <source src="assets/lapiz.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 const LABELS = ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"];
+// Solo rendición REGULAR (DEMRE 2026)
 const DATA = {
   mate: [1, 0, 43, 879, 3080, 4253, 3497, 2849, 2457],
   clec: [5, 2, 102, 929, 3679, 5605, 4898, 2718, 331]
 };
-const TITLES = { mate: "Matemática 1", clec: "Comprensión Lectora" };
-
 let competencia = 'mate';
-let selected = null;
+let hovered = null;
 
-function drawChart() {
+function drawChart(){
   const data = DATA[competencia];
-  const total = data.reduce((a,b)=>a+b,0);
   const yMax = Math.max(...data) * 1.12;
   const svg = document.getElementById('chart');
-  const w = svg.clientWidth || 560;
-  const h = 360;
-  const pad = { t: 14, r: 50, b: 34, l: 64 };
-  const cW = w - pad.l - pad.r;
-  const cH = h - pad.t - pad.b;
+  const w = svg.clientWidth || 560, h = 380;
+  const pad = { t: 14, r: 12, b: 34, l: 64 };
+  const cW = w - pad.l - pad.r, cH = h - pad.t - pad.b;
   const stepX = cW / LABELS.length;
-  const barW = stepX * 0.46;
+  const barW = stepX * 0.5;
   let html = '';
 
   const midY = pad.t + cH/2;
   html += `<text class="axis-title" transform="rotate(-90, 14, ${midY})" x="14" y="${midY}" text-anchor="middle">Estudiantes</text>`;
-  html += `<text class="axis-title" transform="rotate(90, ${w-12}, ${midY})" x="${w-12}" y="${midY}" text-anchor="middle">% acumulado</text>`;
 
   const steps = 5;
   for (let i=0;i<=steps;i++){
@@ -152,138 +112,72 @@ function drawChart() {
     html += `<line class="grid-line" x1="${pad.l}" x2="${pad.l+cW}" y1="${y}" y2="${y}"/>`;
     if (i>0) html += `<text class="axis-text" x="${pad.l-8}" y="${y+4}" text-anchor="end">${Math.round(val).toLocaleString('es-CL')}</text>`;
   }
-  for (let i=0;i<=steps;i++){
-    const pct = (100/steps)*i;
-    const y = pad.t + cH - (pct/100)*cH;
-    html += `<text class="axis-text" x="${pad.l+cW+8}" y="${y+4}" text-anchor="start">${pct}%</text>`;
-  }
 
   for (let k=0;k<LABELS.length;k++){
     const xC = pad.l + k*stepX + stepX/2;
     const bh = (data[k]/yMax)*cH;
-    const dim = (selected!==null && selected!==k) ? ' dimmed' : '';
-    const fill = (selected===k) ? '#1d4ed8' : 'var(--accent)';
-    html += `<rect class="bar${dim}" x="${xC-barW/2}" y="${pad.t+cH-bh}" width="${barW}" height="${bh}" fill="${fill}" rx="3" onclick="select(${k})"/>`;
+    const dim = (hovered!==null && hovered!==k) ? ' dimmed' : '';
+    const fill = (hovered===k) ? '#1d4ed8' : 'var(--accent)';
+    html += `<rect class="bar${dim}" x="${xC-barW/2}" y="${pad.t+cH-bh}" width="${barW}" height="${bh}" fill="${fill}" rx="3"/>`;
     html += `<text class="axis-text" x="${xC}" y="${h-6}" text-anchor="middle">${LABELS[k]}</text>`;
-    html += `<rect class="hover-zone" x="${pad.l+k*stepX}" y="${pad.t}" width="${stepX}" height="${cH}" onclick="select(${k})"/>`;
+    html += `<rect class="hover-zone" x="${pad.l+k*stepX}" y="${pad.t}" width="${stepX}" height="${cH}" data-k="${k}" data-x="${xC}" data-y="${pad.t+cH-bh}"/>`;
   }
-
-  let cum = 0;
-  let pts = [];
-  for (let k=0;k<LABELS.length;k++){
-    cum += data[k];
-    const xC = pad.l + k*stepX + stepX/2;
-    const y = pad.t + cH - (cum/total)*cH;
-    pts.push([xC,y]);
-  }
-  html += `<polyline class="cum-line" points="${pts.map(p=>p[0]+','+p[1]).join(' ')}"/>`;
-  if (selected!==null){
-    const p = pts[selected];
-    html += `<circle class="cum-dot" cx="${p[0]}" cy="${p[1]}" r="5"/>`;
-  }
-
   svg.innerHTML = html;
+  attachHover();
 }
 
-function select(k){
-  selected = k;
-  drawChart();
+function attachHover(){
+  const zones = document.querySelectorAll('.hover-zone');
+  const tt = document.getElementById('tooltip');
+  zones.forEach(z=>{
+    z.addEventListener('mouseenter', ()=>{
+      const k = +z.dataset.k;
+      if (k!==hovered){ hovered = k; drawChart(); playLapiz(k); }
+      showTooltip(k, +z.dataset.x, +z.dataset.y);
+    });
+    z.addEventListener('mousemove', ()=>{
+      showTooltip(+z.dataset.k, +z.dataset.x, +z.dataset.y);
+    });
+    z.addEventListener('mouseleave', ()=>{
+      hovered = null; drawChart();
+      tt.classList.remove('show');
+    });
+  });
+}
+
+function showTooltip(k, x, y){
   const data = DATA[competencia];
   const total = data.reduce((a,b)=>a+b,0);
   const count = data[k];
-  const share = count/total*100;
-  const below = data.slice(0,k).reduce((a,b)=>a+b,0);
-  const pctBelow = below/total*100;         
-  const cumUpTo = (below+count)/total*100;  
+  const share = (count/total*100).toFixed(1);
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML = `
+    <div class="tt-tramo">${LABELS[k]} pts</div>
+    <div class="tt-row"><b>${count.toLocaleString('es-CL')}</b> estudiantes</div>
+    <div class="tt-row"><b>${share}%</b> del total</div>`;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+  tt.classList.add('show');
+}
 
-  let narr;
-  if (pctBelow >= 85) narr = `Muy pocos alcanzan este nivel. Pertenece al grupo más selecto de la prueba: superas a la gran mayoría de quienes rindieron.`;
-  else if (pctBelow >= 60) narr = `Un puntaje sólido y por sobre el promedio del grupo, aunque todavía hay un porcentaje relevante de estudiantes por encima.`;
-  else if (pctBelow >= 35) narr = `Es la zona donde se concentra la mayor cantidad de estudiantes: muy competido y cercano al puntaje típico de la prueba.`;
-  else narr = `Pocos estudiantes quedan en este rango y la mayoría obtuvo un puntaje superior. Estar aquí deja a casi todo el grupo por delante.`;
 
-  const el = document.getElementById('insight');
-  el.innerHTML = `
-    <div class="insight-eyebrow">Tramo seleccionado · ${TITLES[competencia]}</div>
-    <div class="insight-tramo">${LABELS[k]} <span>pts</span></div>
-    <div class="metric">
-      <div class="metric-label">Te deja por sobre el…</div>
-      <div class="metric-value accent">${pctBelow.toFixed(1)}%</div>
-      <div class="metric-sub">de quienes rindieron (${below.toLocaleString('es-CL')} personas con menor puntaje)</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Estudiantes en este tramo</div>
-      <div class="metric-value">${count.toLocaleString('es-CL')}</div>
-      <div class="metric-sub">${share.toFixed(1)}% del total · ${cumUpTo.toFixed(1)}% acumulado hasta aquí</div>
-    </div>
-    <div class="narrative">${narr}</div>
-  `;
-  playTramo(k);
-}
-let actx = null;
-let noiseBuf = null;
-function ensureAudio(){
-  if (actx) return;
-  actx = new (window.AudioContext || window.webkitAudioContext)();
-  const n = actx.sampleRate * 1.0;
-  noiseBuf = actx.createBuffer(1, n, actx.sampleRate);
-  const ch = noiseBuf.getChannelData(0);
-  for (let i=0;i<n;i++) ch[i] = Math.random()*2-1;
-}
-function scratch(t, freq){
-  const src = actx.createBufferSource();
-  src.buffer = noiseBuf;
-  const bp = actx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = freq;
-  bp.Q.value = 6;
-  const g = actx.createGain();
-  const peak = 0.35; 
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(peak, t+0.012);
-  g.gain.exponentialRampToValueAtTime(0.0001, t+0.07);
-  src.connect(bp); bp.connect(g); g.connect(actx.destination);
-  src.start(t); src.stop(t+0.09);
-}
-function freqForTramo(k){
-  return 250 * Math.pow(2200/250, k/(LABELS.length-1));
-}
-function playTramo(k, startOffset=0){
-  ensureAudio();
-  if (actx.state==='suspended') actx.resume();
+function playLapiz(k){
+  const a = document.getElementById('sonidoLapiz');
+  if (!a) return;
   const data = DATA[competencia];
   const maxC = Math.max(...data);
-  const count = data[k];
-  const nScratch = Math.max(2, Math.min(14, Math.round(count/maxC*12)+2)); 
-  const freq = freqForTramo(k);
-  const dur = 0.75;
-  const dt = dur/nScratch;
-  const t0 = actx.currentTime + startOffset;
-  for (let i=0;i<nScratch;i++) scratch(t0 + i*dt, freq);
-}
-function playDistribution(){
-  ensureAudio();
-  if (actx.state==='suspended') actx.resume();
-  for (let k=0;k<LABELS.length;k++) playTramo(k, k*0.55);
+  a.volume = Math.min(1, 0.2 + 0.8*(data[k]/maxC)); 
+  a.currentTime = 0;
+  const p = a.play();
+  if (p) p.catch(()=>{});
 }
 
 function setCompetencia(c){
   competencia = c;
-  selected = null;
+  hovered = null;
   document.getElementById('btnMate').classList.toggle('active', c==='mate');
   document.getElementById('btnClec').classList.toggle('active', c==='clec');
-  document.getElementById('chartTitle').innerText = TITLES[c];
   drawChart();
-  resetInsight();
-}
-function resetInsight(){
-  document.getElementById('insight').innerHTML = `
-    <div class="insight-eyebrow">Selecciona un tramo</div>
-    <div class="placeholder-note">
-      Haz clic en cualquier columna para ver qué porcentaje de estudiantes obtuvo ese puntaje
-      y por sobre cuántos te deja. Cada tramo suena en un <b>tono distinto</b> (grave = puntaje bajo,
-      agudo = puntaje alto) y con un <b>ritmo</b> según cuánta gente hay.
-    </div>`;
 }
 
 window.onload = drawChart;
