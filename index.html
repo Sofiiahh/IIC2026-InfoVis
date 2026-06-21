@@ -100,7 +100,7 @@ const DATA = {
 };
 const AVG = { mate: 632, clec: 610 };
 let competencia = 'mate';
-let hovered = null;
+let PTS = [];
 
 function smoothPath(pts){
   if (pts.length < 2) return '';
@@ -124,7 +124,7 @@ function niceStep(x){
 function drawChart(){
   const data = DATA[competencia];
   const maxData = Math.max(...data);
-  const step = niceStep(maxData / 4); 
+  const step = niceStep(maxData / 4);    
   const yMax = Math.ceil(maxData / step) * step; 
   const svg = document.getElementById('chart');
   const w = svg.clientWidth || 560, h = 400;
@@ -168,13 +168,9 @@ function drawChart(){
   }
   html += `<text class="axis-label" x="${pad.l+cW/2}" y="${h-6}" text-anchor="middle">Tramo de puntaje</text>`;
 
-  if (hovered!==null){
-    html += `<line class="guide show" x1="${pts[hovered].x}" x2="${pts[hovered].x}" y1="${pad.t}" y2="${pad.t+cH}"/>`;
-  }
+  html += `<line class="guide" id="guide" x1="0" x2="0" y1="${pad.t}" y2="${pad.t+cH}"/>`;
   for (let k=0;k<LABELS.length;k++){
-    const act = (hovered===k) ? ' active' : '';
-    const r = (hovered===k) ? 7 : 4.5;
-    html += `<circle class="dot${act}" cx="${pts[k].x}" cy="${pts[k].y}" r="${r}"/>`;
+    html += `<circle class="dot" id="dot-${k}" cx="${pts[k].x}" cy="${pts[k].y}" r="4.5"/>`;
   }
   for (let k=0;k<LABELS.length;k++){
     const left = Math.max(pad.l, pad.l + (k-0.5)*stepX);
@@ -182,20 +178,32 @@ function drawChart(){
     html += `<rect class="hit" x="${left}" y="${pad.t}" width="${right-left}" height="${cH}" data-k="${k}" data-px="${pts[k].x}" data-py="${pts[k].y}"/>`;
   }
   svg.innerHTML = html;
+  PTS = pts;
   attachHover();
 }
 
 function attachHover(){
   const tt = document.getElementById('tooltip');
+  const guide = document.getElementById('guide');
   document.querySelectorAll('.hit').forEach(z=>{
     z.addEventListener('mouseenter', ()=>{
       const k = +z.dataset.k;
-      hovered = k; drawChart();
+      guide.setAttribute('x1', PTS[k].x);
+      guide.setAttribute('x2', PTS[k].x);
+      guide.classList.add('show');
+      for (let i=0;i<PTS.length;i++){
+        const d = document.getElementById('dot-'+i);
+        if (d){ d.setAttribute('r', i===k?7:4.5); d.classList.toggle('active', i===k); }
+      }
       showTooltip(k, +z.dataset.px, +z.dataset.py);
       startLapiz(k);
     });
     z.addEventListener('mouseleave', ()=>{
-      hovered = null; drawChart();
+      guide.classList.remove('show');
+      for (let i=0;i<PTS.length;i++){
+        const d = document.getElementById('dot-'+i);
+        if (d){ d.setAttribute('r', 4.5); d.classList.remove('active'); }
+      }
       tt.classList.remove('show');
       stopLapiz();
     });
@@ -235,7 +243,6 @@ function stopLapiz(){
 
 function setCompetencia(c){
   competencia = c;
-  hovered = null;
   stopLapiz();
   document.getElementById('btnMate').classList.toggle('active', c==='mate');
   document.getElementById('btnClec').classList.toggle('active', c==='clec');
