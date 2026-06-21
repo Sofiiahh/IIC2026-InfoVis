@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Distribución de Puntajes · PAES Regular 2026</title>
+<title>Distribución de Puntajes · PAES 2026</title>
 <style>
   :root {
     --bg-page: #f4f6f8;
@@ -15,33 +15,25 @@
     --border-color: #e2e8f0;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-  body { background-color: var(--bg-page); color: var(--text-main); padding: 2.5rem 1rem; }
-  .dashboard { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
+  body { background-color: var(--bg-page); color: var(--text-main); padding: 2rem 1rem; }
+  .dashboard { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .topbar { text-align: right; font-size: 0.8rem; color: var(--text-muted); }
 
   .header { text-align: center; }
-  .header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
-  .header .purpose { color: var(--text-main); font-size: 1.08rem; max-width: 720px; margin: 0 auto; line-height: 1.55; font-weight: 500; }
-
-  .context { background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; padding: 1rem 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); }
-  .context b { color: var(--text-main); }
+  .header h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.35rem; }
+  .header p { color: var(--text-muted); font-size: 1rem; }
 
   .toggle-group { display: inline-flex; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 999px; padding: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
   .toggle-btn { border: none; background: transparent; padding: 0.55rem 1.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); border-radius: 999px; cursor: pointer; transition: all 0.2s ease; }
   .toggle-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,0.35); }
 
-  /* tira de estadísticas */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-  .stat { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem; text-align: center; }
-  .stat-num { font-size: 1.5rem; font-weight: 800; color: var(--accent-dark); }
-  .stat-label { font-size: 0.74rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; line-height: 1.25; }
-
   .card { background: var(--bg-card); border-radius: 14px; padding: 1.5rem 1.5rem 1.25rem; border: 1px solid var(--border-color); box-shadow: 0 4px 8px -2px rgba(0,0,0,0.05); position: relative; }
-  .svg-container { position: relative; width: 100%; height: 390px; }
+  .svg-container { position: relative; width: 100%; height: 400px; }
   svg { width: 100%; height: 100%; overflow: visible; }
   .grid-line { stroke: #f1f5f9; stroke-width: 1.5; }
   .axis-text { font-size: 11px; fill: var(--text-muted); font-weight: 500; }
-  .axis-label { font-size: 11px; fill: var(--text-muted); font-weight: 700; }
-  .axis-xtitle { font-size: 11px; fill: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .axis-label { font-size: 11px; fill: var(--text-muted); font-weight: 600; }
 
   .line-path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
   .dot { fill: #fff; stroke: var(--accent); stroke-width: 2.5; transition: r 0.15s; }
@@ -51,43 +43,33 @@
   .hit { fill: transparent; cursor: pointer; }
 
   .tooltip { position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -120%);
-    background: #0f172a; color: #fff; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.82rem;
+    background: #0f172a; color: #fff; padding: 0.55rem 0.8rem; border-radius: 8px; font-size: 0.82rem;
     line-height: 1.45; white-space: nowrap; transition: opacity 0.12s; box-shadow: 0 6px 16px rgba(0,0,0,0.25); z-index: 10; }
   .tooltip.show { opacity: 1; }
-  .tt-tramo { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; }
+  .tt-tramo { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; }
   .tt-row { color: #cbd5e1; }
-  .tt-row b { color: #fff; }
 
-  .conclusion { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.97rem; line-height: 1.6; }
-  .conclusion .tag { display: inline-block; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 6px; margin-bottom: 0.5rem; }
-  .conclusion b { color: var(--accent-dark); }
+  .context { color: var(--text-muted); font-size: 0.95rem; line-height: 1.55; text-align: center; max-width: 660px; margin: 0.2rem auto 0; }
+  .conclusion { color: var(--text-main); font-size: 1rem; line-height: 1.6; text-align: center; max-width: 680px; margin: 0 auto; }
+  .note { color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; text-align: center; font-style: italic; }
+  .source { text-align: center; color: #94a3b8; font-size: 0.78rem; }
 
-  .author-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.92rem; line-height: 1.6; color: #92400e; }
-  .author-note b { color: #78350f; }
-
-  .footer { text-align: center; color: var(--text-muted); font-size: 0.82rem; line-height: 1.7; padding-top: 0.5rem; }
-  .footer .group { color: var(--text-main); font-weight: 700; font-size: 0.9rem; }
-
-  @media (max-width: 620px){ .header h1 { font-size: 1.55rem; } .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px){ .header h1 { font-size: 1.45rem; } }
 </style>
 </head>
 <body>
 <div class="dashboard">
+  <div class="topbar">Grupo 16 — Carolina Lobos y Sofía Solorza</div>
+
   <div class="header">
     <h1>¿Dónde se concentran los puntajes de la PAES?</h1>
-    <p class="purpose">La gran mayoría de los estudiantes obtiene puntajes medios y muy pocos llegan a lo más alto. Esta visualización muestra <b>cómo se reparten los estudiantes en cada tramo de puntaje</b> para entender qué tan competitivo es realmente cada nivel.</p>
-  </div>
-
-  <div class="context">
-    La <b>PAES</b> (Prueba de Acceso a la Educación Superior) es el examen de admisión a las universidades en Chile; sus puntajes van de <b>100 a 1000</b>. Aquí se observa la <b>rendición Regular 2026</b>, con casi <b>250 mil estudiantes</b> en cada competencia. Cambia entre <b>Matemática</b> y <b>Comprensión Lectora</b> y recorre la curva para explorar tramo por tramo.
+    <p class="context">La PAES es la prueba de admisión a las universidades en Chile, con puntajes de 100 a 1000. Aquí se ven los resultados de la rendición regular, rendida en diciembre de 2025 para el Proceso de Admisión 2026.</p>
   </div>
 
   <div class="toggle-group">
-    <button class="toggle-btn active" id="btnMate" onclick="setCompetencia('mate')">Matemática 1</button>
-    <button class="toggle-btn" id="btnClec" onclick="setCompetencia('clec')">Comprensión Lectora</button>
+    <button class="toggle-btn active" id="btnMate" onclick="setCompetencia('mate')">Matemática</button>
+    <button class="toggle-btn" id="btnClec" onclick="setCompetencia('clec')">Lenguaje</button>
   </div>
-
-  <div class="stats" id="stats"></div>
 
   <div class="card">
     <div class="svg-container">
@@ -96,16 +78,11 @@
     </div>
   </div>
 
-  <div class="conclusion" id="conclusion"></div>
+  <p class="conclusion">Superar los 700 puntos es más difícil de lo que parece: lo logra cerca de 1 de cada 4 personas en Matemática y solo 1 de cada 5 en Lenguaje. Aunque muchísimos rinden, los puntajes altos siguen siendo escasos.</p>
 
-  <div class="author-note">
-    <b>Nota de autor — sobre el sonido:</b> al pasar sobre cada punto se escucha el sonido de un lápiz escribiendo, que evoca la presión de rendir la prueba. El <b>volumen aumenta donde hay más estudiantes</b>: los tramos más numerosos "suenan" más cargados, igual que las salas más llenas el día del examen. El sonido se reproduce solo mientras mantienes el cursor sobre un punto.
-  </div>
+  <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes.</p>
 
-  <div class="footer">
-    <div class="group">Grupo 16 · Carolina Lobos y Sofía Solorza</div>
-    <i>Fuente: DEMRE — Datos de Rendición PAES, Proceso de Admisión 2026 (rendición Regular).</i>
-  </div>
+  <p class="source">Fuente: DEMRE — Rendición PAES, Proceso de Admisión 2026.</p>
 </div>
 
 <audio id="sonidoLapiz" preload="auto">
@@ -117,10 +94,6 @@ const LABELS = ["100–199","200–299","300–399","400–499","500–599","600
 const DATA = {
   mate: [30, 76, 3800, 39299, 74137, 60379, 30364, 18954, 17637],
   clec: [60, 262, 9031, 43572, 76227, 64610, 37170, 16723, 2076]
-};
-const STATS = {
-  mate: { total: 244676, prom: 632, med: 601, over: 66955, overP: 27.4, modeIdx: 4, nombre: "Matemática 1" },
-  clec: { total: 249731, prom: 610, med: 597, over: 55969, overP: 22.4, modeIdx: 4, nombre: "Comprensión Lectora" }
 };
 let competencia = 'mate';
 let hovered = null;
@@ -137,30 +110,21 @@ function smoothPath(pts){
   return d;
 }
 
-function renderStats(){
-  const s = STATS[competencia];
-  document.getElementById('stats').innerHTML = `
-    <div class="stat"><div class="stat-num">${s.total.toLocaleString('es-CL')}</div><div class="stat-label">estudiantes rindieron</div></div>
-    <div class="stat"><div class="stat-num">${s.prom}</div><div class="stat-label">puntaje promedio</div></div>
-    <div class="stat"><div class="stat-num">${LABELS[s.modeIdx]}</div><div class="stat-label">tramo más numeroso</div></div>
-    <div class="stat"><div class="stat-num">${s.overP}%</div><div class="stat-label">supera los 700 pts</div></div>`;
+function niceStep(x){
+  const exp = Math.floor(Math.log10(x));
+  const base = Math.pow(10, exp);
+  const f = x / base;
+  const nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+  return nf * base;
 }
-
-function renderConclusion(){
-  const s = STATS[competencia];
-  document.getElementById('conclusion').innerHTML = `
-    <span class="tag">¿Qué concluir?</span><br>
-    En <b>${s.nombre}</b>, la mayoría de los estudiantes se ubica en torno al tramo <b>${LABELS[s.modeIdx]}</b>, con un promedio de <b>${s.prom} puntos</b>.
-    Solo el <b>${s.overP}%</b> supera los 700 puntos, lo que muestra lo <b>selectivos</b> que son los puntajes altos.
-    Comparando ambas pruebas, el promedio fue mayor en <b>Matemática (632)</b> que en <b>Comprensión Lectora (610)</b>: proporcionalmente, más estudiantes alcanzan puntajes altos en Matemática.`;
-}
-
 function drawChart(){
   const data = DATA[competencia];
-  const yMax = Math.max(...data) * 1.15;
+  const maxData = Math.max(...data);
+  const step = niceStep(maxData / 4);    
+  const yMax = Math.ceil(maxData / step) * step; 
   const svg = document.getElementById('chart');
-  const w = svg.clientWidth || 560, h = 390;
-  const pad = { t: 34, r: 18, b: 50, l: 58 };
+  const w = svg.clientWidth || 560, h = 400;
+  const pad = { t: 22, r: 18, b: 50, l: 70 };
   const cW = w - pad.l - pad.r, cH = h - pad.t - pad.b;
   const stepX = cW / (LABELS.length - 1);
   let html = '';
@@ -169,15 +133,13 @@ function drawChart(){
     <stop offset="0%" stop-color="#2563eb" stop-opacity="0.35"/>
     <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/></linearGradient></defs>`;
 
-  // rótulo eje Y horizontal (convención estándar)
-  html += `<text class="axis-label" x="${pad.l}" y="${pad.t-14}" text-anchor="start">Cantidad de estudiantes</text>`;
+  const midY = pad.t + cH/2;
+  html += `<text class="axis-label" transform="rotate(-90, 16, ${midY})" x="16" y="${midY}" text-anchor="middle">Cantidad de estudiantes</text>`;
 
-  const steps = 5;
-  for (let i=0;i<=steps;i++){
-    const val = (yMax/steps)*i;
+  for (let val=0; val<=yMax+1; val+=step){
     const y = pad.t + cH - (val/yMax)*cH;
     html += `<line class="grid-line" x1="${pad.l}" x2="${pad.l+cW}" y1="${y}" y2="${y}"/>`;
-    if (i>0) html += `<text class="axis-text" x="${pad.l-8}" y="${y+4}" text-anchor="end">${Math.round(val).toLocaleString('es-CL')}</text>`;
+    if (val>0) html += `<text class="axis-text" x="${pad.l-8}" y="${y+4}" text-anchor="end">${val.toLocaleString('es-CL')}</text>`;
   }
 
   const pts = data.map((v,k)=>({ x: pad.l + k*stepX, y: pad.t + cH - (v/yMax)*cH }));
@@ -187,9 +149,9 @@ function drawChart(){
   html += `<path class="line-path" d="${linePath}"/>`;
 
   for (let k=0;k<LABELS.length;k++){
-    html += `<text class="axis-text" x="${pts[k].x}" y="${h-22}" text-anchor="middle">${LABELS[k]}</text>`;
+    html += `<text class="axis-text" x="${pts[k].x}" y="${h-26}" text-anchor="middle">${LABELS[k]}</text>`;
   }
-  html += `<text class="axis-xtitle" x="${pad.l+cW/2}" y="${h-4}" text-anchor="middle">Tramo de puntaje</text>`;
+  html += `<text class="axis-label" x="${pad.l+cW/2}" y="${h-6}" text-anchor="middle">Tramo de puntaje</text>`;
 
   if (hovered!==null){
     html += `<line class="guide show" x1="${pts[hovered].x}" x2="${pts[hovered].x}" y1="${pad.t}" y2="${pad.t+cH}"/>`;
@@ -199,7 +161,6 @@ function drawChart(){
     const r = (hovered===k) ? 7 : 4.5;
     html += `<circle class="dot${act}" cx="${pts[k].x}" cy="${pts[k].y}" r="${r}"/>`;
   }
-  // zona sensible SOLO alrededor del círculo
   for (let k=0;k<LABELS.length;k++){
     html += `<circle class="hit" cx="${pts[k].x}" cy="${pts[k].y}" r="20" data-k="${k}" data-px="${pts[k].x}" data-py="${pts[k].y}"/>`;
   }
@@ -231,14 +192,12 @@ function showTooltip(k, x, y){
   const tt = document.getElementById('tooltip');
   tt.innerHTML = `
     <div class="tt-tramo">${LABELS[k]} pts</div>
-    <div class="tt-row"><b>${data[k].toLocaleString('es-CL')}</b> estudiantes</div>
-    <div class="tt-row"><b>${share}%</b> del total</div>`;
+    <div class="tt-row">${data[k].toLocaleString('es-CL')} estudiantes · ${share}%</div>`;
   tt.style.left = x + 'px';
   tt.style.top = y + 'px';
   tt.classList.add('show');
 }
 
-/* Sonido: suena mientras el cursor esté sobre el punto, se corta al salir */
 function startLapiz(k){
   const a = document.getElementById('sonidoLapiz');
   if (!a) return;
@@ -263,12 +222,10 @@ function setCompetencia(c){
   stopLapiz();
   document.getElementById('btnMate').classList.toggle('active', c==='mate');
   document.getElementById('btnClec').classList.toggle('active', c==='clec');
-  renderStats();
-  renderConclusion();
   drawChart();
 }
 
-window.onload = ()=>{ renderStats(); renderConclusion(); drawChart(); };
+window.onload = ()=>{ drawChart(); };
 window.onresize = drawChart;
 </script>
 </body>
