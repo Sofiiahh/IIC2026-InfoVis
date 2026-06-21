@@ -34,6 +34,9 @@
   .grid-line { stroke: #f1f5f9; stroke-width: 1.5; }
   .axis-text { font-size: 11px; fill: var(--text-muted); font-weight: 500; }
   .axis-label { font-size: 11px; fill: var(--text-muted); font-weight: 600; }
+  .zone-label { font-size: 10px; fill: #b45309; font-weight: 700; }
+  .avg-label { font-size: 10px; fill: #475569; font-weight: 700; }
+  .peak-label { font-size: 11px; fill: var(--accent-dark); font-weight: 700; }
 
   .line-path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
   .dot { fill: #fff; stroke: var(--accent); stroke-width: 2.5; transition: r 0.15s; }
@@ -80,7 +83,7 @@
 
   <p class="conclusion">Superar los 700 puntos es más difícil de lo que parece: lo logra cerca de 1 de cada 4 personas en Matemática y solo 1 de cada 5 en Lenguaje. Aunque muchísimos rinden, los puntajes altos siguen siendo escasos.</p>
 
-  <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes.</p>
+  <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes. Solo suena mientras pasas el cursor sobre un punto.</p>
 
   <p class="source">Fuente: DEMRE — Rendición PAES, Proceso de Admisión 2026.</p>
 </div>
@@ -95,6 +98,7 @@ const DATA = {
   mate: [30, 76, 3800, 39299, 74137, 60379, 30364, 18954, 17637],
   clec: [60, 262, 9031, 43572, 76227, 64610, 37170, 16723, 2076]
 };
+const AVG = { mate: 632, clec: 610 };
 let competencia = 'mate';
 let hovered = null;
 
@@ -120,18 +124,24 @@ function niceStep(x){
 function drawChart(){
   const data = DATA[competencia];
   const maxData = Math.max(...data);
-  const step = niceStep(maxData / 4);    
-  const yMax = Math.ceil(maxData / step) * step; 
+  const step = niceStep(maxData / 4);
+  const yMax = Math.ceil(maxData / step) * step;
   const svg = document.getElementById('chart');
   const w = svg.clientWidth || 560, h = 400;
-  const pad = { t: 22, r: 18, b: 50, l: 70 };
+  const pad = { t: 46, r: 18, b: 50, l: 70 };
   const cW = w - pad.l - pad.r, cH = h - pad.t - pad.b;
   const stepX = cW / (LABELS.length - 1);
+  const xForScore = s => pad.l + (Math.min(1000, Math.max(100, s))/100 - 1) * stepX;
   let html = '';
 
   html += `<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0%" stop-color="#2563eb" stop-opacity="0.35"/>
     <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/></linearGradient></defs>`;
+
+  const zx = xForScore(700);
+  html += `<rect x="${zx}" y="${pad.t}" width="${pad.l+cW-zx}" height="${cH}" fill="#f59e0b" opacity="0.07"/>`;
+  html += `<line x1="${zx}" x2="${zx}" y1="${pad.t}" y2="${pad.t+cH}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>`;
+  html += `<text class="zone-label" x="${(zx+pad.l+cW)/2}" y="${pad.t+13}" text-anchor="middle">Puntajes altos (700+)</text>`;
 
   const midY = pad.t + cH/2;
   html += `<text class="axis-label" transform="rotate(-90, 16, ${midY})" x="16" y="${midY}" text-anchor="middle">Cantidad de estudiantes</text>`;
@@ -147,6 +157,11 @@ function drawChart(){
   const areaPath = `${linePath} L ${pts[pts.length-1].x},${pad.t+cH} L ${pts[0].x},${pad.t+cH} Z`;
   html += `<path d="${areaPath}" fill="url(#grad)"/>`;
   html += `<path class="line-path" d="${linePath}"/>`;
+
+  const avg = AVG[competencia];
+  const ax = xForScore(avg);
+  html += `<line x1="${ax}" x2="${ax}" y1="${pad.t}" y2="${pad.t+cH}" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  html += `<text class="avg-label" x="${ax-6}" y="${pad.t+cH-8}" text-anchor="end">Promedio ${avg}</text>`;
 
   for (let k=0;k<LABELS.length;k++){
     html += `<text class="axis-text" x="${pts[k].x}" y="${h-26}" text-anchor="middle">${LABELS[k]}</text>`;
