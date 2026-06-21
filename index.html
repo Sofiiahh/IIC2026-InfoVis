@@ -83,10 +83,9 @@
 
 <script>
 const LABELS = ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"];
-// Solo rendición REGULAR (DEMRE 2026)
 const DATA = {
-  mate: [1, 0, 43, 879, 3080, 4253, 3497, 2849, 2457],
-  clec: [5, 2, 102, 929, 3679, 5605, 4898, 2718, 331]
+  mate: [30, 76, 3800, 39299, 74137, 60379, 30364, 18954, 17637],
+  clec: [60, 262, 9031, 43572, 76227, 64610, 37170, 16723, 2076]
 };
 let competencia = 'mate';
 let hovered = null;
@@ -166,7 +165,7 @@ function playLapiz(k){
   if (!a) return;
   const data = DATA[competencia];
   const maxC = Math.max(...data);
-  a.volume = Math.min(1, 0.2 + 0.8*(data[k]/maxC)); 
+  a.volume = Math.min(1, 0.2 + 0.8*(data[k]/maxC));
   a.currentTime = 0;
   const p = a.play();
   if (p) p.catch(()=>{});
