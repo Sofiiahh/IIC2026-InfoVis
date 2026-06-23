@@ -204,7 +204,7 @@ function drawChart(){
   attachHover();
 }
 
-function activate(k){
+function activate(k, playSound=true){
   const guide = document.getElementById('guide');
   if (guide){ guide.setAttribute('x1', PTS[k].x); guide.setAttribute('x2', PTS[k].x); guide.classList.add('show'); }
   for (let i=0;i<PTS.length;i++){
@@ -212,7 +212,7 @@ function activate(k){
     if (d){ d.setAttribute('r', i===k?7:4.5); d.classList.toggle('active', i===k); }
   }
   showTooltip(k, PTS[k].x, PTS[k].y);
-  startLapiz(k);
+  if (playSound) startLapiz(k);   // el mouse suena al tiro; la cámara espera a que termine la voz
 }
 function deactivate(){
   const guide = document.getElementById('guide');
@@ -223,6 +223,7 @@ function deactivate(){
   }
   const tt = document.getElementById('tooltip');
   if (tt) tt.classList.remove('show');
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   stopLapiz();
 }
 function attachHover(){
@@ -287,6 +288,7 @@ async function startCamara(){
   const v = document.getElementById('cam');
   const status = document.getElementById('camStatus');
   if (typeof AR === 'undefined'){ status.textContent = 'No se cargó la librería de detección (revisa tu conexión).'; return; }
+  primeSpeech();   // "despierta" la voz dentro del gesto del clic (si no, el navegador la bloquea)
   try {
     const constraints = selectedDeviceId
       ? { video: { deviceId: { exact: selectedDeviceId } } }
@@ -318,7 +320,17 @@ async function populateCameras(){
   const cur = camStream && camStream.getVideoTracks()[0];
   if (!selectedDeviceId && cur && cur.getSettings) selectedDeviceId = cur.getSettings().deviceId;
   if (selectedDeviceId) sel.value = selectedDeviceId;
-  sel.style.display = cams.length > 1 ? 'inline-block' : 'none';
+  sel.style.display = cams.length ? 'inline-block' : 'none';
+}
+// "despierta" la síntesis de voz dentro del gesto del usuario
+function primeSpeech(){
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
 }
 function onCamSelect(){
   selectedDeviceId = document.getElementById('camSelect').value;
@@ -346,6 +358,8 @@ function speakTramo(k){
   const txt = `${prueba}. Tramo ${rango} puntos. ${data[k].toLocaleString('es-CL')} estudiantes, ${share} por ciento del total. Supera al ${pctBelow} por ciento de quienes rindieron.`;
   const u = new SpeechSynthesisUtterance(txt);
   u.lang = 'es-ES'; u.rate = 1;
+  // al terminar de hablar, recién suena el lápiz (si el marcador sigue presente)
+  u.onend = () => { if (currentMarker === k && camStream) startLapiz(k); };
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }
@@ -373,7 +387,7 @@ function loopCamara(){
       const status = document.getElementById('camStatus');
       const prueba = competencia === 'mate' ? 'Matemática' : 'Lenguaje';
       if (tramoId === null){ deactivate(); status.textContent = 'Prueba: ' + prueba + ' · muestra un marcador de tramo'; }
-      else { activate(tramoId); speakTramo(tramoId); status.textContent = prueba + ' · tramo ' + LABELS[tramoId] + ' pts'; }
+      else { stopLapiz(); activate(tramoId, false); speakTramo(tramoId); status.textContent = prueba + ' · tramo ' + LABELS[tramoId] + ' pts'; }
     }
   }
   rafId = requestAnimationFrame(loopCamara);
