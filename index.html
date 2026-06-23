@@ -56,6 +56,11 @@
   .conclusion { color: var(--text-main); font-size: 1rem; line-height: 1.6; text-align: center; max-width: 680px; margin: 0 auto; }
   .note { color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; text-align: center; font-style: italic; }
   .source { text-align: center; color: #94a3b8; font-size: 0.78rem; }
+  .camara { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .cam-btn { border: 1px solid var(--accent); background: #fff; color: var(--accent); padding: 0.6rem 1.3rem; border-radius: 999px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+  .cam-btn:hover { background: var(--accent); color: #fff; }
+  .cam-status { font-size: 0.82rem; color: var(--text-muted); }
+  #cam { width: 240px; border-radius: 10px; border: 1px solid var(--border-color); }
 
   @media (max-width: 620px){ .header h1 { font-size: 1.45rem; } }
 </style>
@@ -81,6 +86,13 @@
     </div>
   </div>
 
+  <div class="camara">
+    <button class="cam-btn" id="camBtn" onclick="toggleCamara()">📷 Activar cámara (modo sala)</button>
+    <span class="cam-status" id="camStatus">Cámara apagada · muestra un marcador a la cámara para activar su tramo</span>
+    <video id="cam" autoplay playsinline muted style="display:none"></video>
+    <canvas id="camCanvas" style="display:none"></canvas>
+  </div>
+
   <p class="conclusion">Superar los 700 puntos es más difícil de lo que parece: lo logra cerca de 1 de cada 4 personas en Matemática y solo 1 de cada 5 en Lenguaje. Aunque muchísimos rinden, los puntajes altos siguen siendo escasos.</p>
 
   <p class="note">Nota de autor — el sonido es un lápiz escribiendo: suena más fuerte donde hay más estudiantes. Solo suena mientras pasas el cursor sobre un punto.</p>
@@ -91,6 +103,10 @@
 <audio id="sonidoLapiz" preload="auto">
   <source src="assets/lapiz.mp3" type="audio/mpeg">
 </audio>
+
+<script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/cv.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/dictionaries.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/aruco.js"></script>
 
 <script>
 const LABELS = ["100–199","200–299","300–399","400–499","500–599","600–699","700–799","800–899","900–1000"];
@@ -172,6 +188,7 @@ function drawChart(){
   for (let k=0;k<LABELS.length;k++){
     html += `<circle class="dot" id="dot-${k}" cx="${pts[k].x}" cy="${pts[k].y}" r="4.5"/>`;
   }
+
   for (let k=0;k<LABELS.length;k++){
     const left = Math.max(pad.l, pad.l + (k-0.5)*stepX);
     const right = Math.min(pad.l+cW, pad.l + (k+0.5)*stepX);
@@ -182,31 +199,31 @@ function drawChart(){
   attachHover();
 }
 
-function attachHover(){
-  const tt = document.getElementById('tooltip');
+function activate(k){
   const guide = document.getElementById('guide');
+  if (guide){ guide.setAttribute('x1', PTS[k].x); guide.setAttribute('x2', PTS[k].x); guide.classList.add('show'); }
+  for (let i=0;i<PTS.length;i++){
+    const d = document.getElementById('dot-'+i);
+    if (d){ d.setAttribute('r', i===k?7:4.5); d.classList.toggle('active', i===k); }
+  }
+  showTooltip(k, PTS[k].x, PTS[k].y);
+  startLapiz(k);
+}
+function deactivate(){
+  const guide = document.getElementById('guide');
+  if (guide) guide.classList.remove('show');
+  for (let i=0;i<PTS.length;i++){
+    const d = document.getElementById('dot-'+i);
+    if (d){ d.setAttribute('r', 4.5); d.classList.remove('active'); }
+  }
+  const tt = document.getElementById('tooltip');
+  if (tt) tt.classList.remove('show');
+  stopLapiz();
+}
+function attachHover(){
   document.querySelectorAll('.hit').forEach(z=>{
-    z.addEventListener('mouseenter', ()=>{
-      const k = +z.dataset.k;
-      guide.setAttribute('x1', PTS[k].x);
-      guide.setAttribute('x2', PTS[k].x);
-      guide.classList.add('show');
-      for (let i=0;i<PTS.length;i++){
-        const d = document.getElementById('dot-'+i);
-        if (d){ d.setAttribute('r', i===k?7:4.5); d.classList.toggle('active', i===k); }
-      }
-      showTooltip(k, +z.dataset.px, +z.dataset.py);
-      startLapiz(k);
-    });
-    z.addEventListener('mouseleave', ()=>{
-      guide.classList.remove('show');
-      for (let i=0;i<PTS.length;i++){
-        const d = document.getElementById('dot-'+i);
-        if (d){ d.setAttribute('r', 4.5); d.classList.remove('active'); }
-      }
-      tt.classList.remove('show');
-      stopLapiz();
-    });
+    z.addEventListener('mouseenter', ()=> activate(+z.dataset.k));
+    z.addEventListener('mouseleave', ()=> deactivate());
   });
 }
 
@@ -214,10 +231,13 @@ function showTooltip(k, x, y){
   const data = DATA[competencia];
   const total = data.reduce((a,b)=>a+b,0);
   const share = (data[k]/total*100).toFixed(1);
+  const below = data.slice(0,k).reduce((a,b)=>a+b,0);
+  const pctBelow = (below/total*100).toFixed(0);
   const tt = document.getElementById('tooltip');
   tt.innerHTML = `
     <div class="tt-tramo">${LABELS[k]} pts</div>
-    <div class="tt-row">${data[k].toLocaleString('es-CL')} estudiantes · ${share}%</div>`;
+    <div class="tt-row">${data[k].toLocaleString('es-CL')} estudiantes · ${share}%</div>
+    <div class="tt-row">Supera al ${pctBelow}% de quienes rindieron</div>`;
   tt.style.left = x + 'px';
   tt.style.top = y + 'px';
   tt.classList.add('show');
@@ -247,6 +267,61 @@ function setCompetencia(c){
   document.getElementById('btnMate').classList.toggle('active', c==='mate');
   document.getElementById('btnClec').classList.toggle('active', c==='clec');
   drawChart();
+}
+let camStream = null, detector = null, rafId = null, currentMarker = null;
+
+function toggleCamara(){
+  if (camStream) { stopCamara(); } else { startCamara(); }
+}
+function startCamara(){
+  const v = document.getElementById('cam');
+  const status = document.getElementById('camStatus');
+  if (typeof AR === 'undefined'){ status.textContent = 'No se cargó la librería de detección (revisa tu conexión).'; return; }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(s => {
+      camStream = s; v.srcObject = s; v.style.display = 'block'; v.play();
+      detector = detector || new AR.Detector({ dictionaryName: 'ARUCO' });
+      document.getElementById('camBtn').textContent = '⏹ Apagar cámara';
+      status.textContent = 'Buscando marcadores…';
+      loopCamara();
+    })
+    .catch(() => { status.textContent = 'No se pudo abrir la cámara (debe ser https y dar permiso).'; });
+}
+function stopCamara(){
+  if (rafId) cancelAnimationFrame(rafId);
+  if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  currentMarker = null; deactivate();
+  const v = document.getElementById('cam'); v.style.display = 'none';
+  document.getElementById('camBtn').textContent = '📷 Activar cámara (modo sala)';
+  document.getElementById('camStatus').textContent = 'Cámara apagada · muestra un marcador a la cámara para activar su tramo';
+}
+function loopCamara(){
+  const v = document.getElementById('cam'), c = document.getElementById('camCanvas');
+  if (v.readyState === v.HAVE_ENOUGH_DATA){
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    let markers = [];
+    try { markers = detector.detect(img); } catch(e) {}
+
+    let compSel = null, tramoId = null;
+    for (const m of markers){
+      if (m.id === 10) compSel = 'mate';      
+      else if (m.id === 11) compSel = 'clec';  
+      else if (m.id >= 0 && m.id < LABELS.length) tramoId = m.id;
+    }
+
+    if (compSel && compSel !== competencia){ setCompetencia(compSel); currentMarker = null; }
+    if (tramoId !== currentMarker){
+      currentMarker = tramoId;
+      const status = document.getElementById('camStatus');
+      const prueba = competencia === 'mate' ? 'Matemática' : 'Lenguaje';
+      if (tramoId === null){ deactivate(); status.textContent = 'Prueba: ' + prueba + ' · muestra un marcador de tramo'; }
+      else { activate(tramoId); status.textContent = prueba + ' · tramo ' + LABELS[tramoId] + ' pts'; }
+    }
+  }
+  rafId = requestAnimationFrame(loopCamara);
 }
 
 window.onload = ()=>{ drawChart(); };
