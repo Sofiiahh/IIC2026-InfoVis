@@ -61,6 +61,7 @@
   .cam-btn:hover { background: var(--accent); color: #fff; }
   .cam-status { font-size: 0.82rem; color: var(--text-muted); }
   #cam { width: 240px; border-radius: 10px; border: 1px solid var(--border-color); }
+  #camSelect { padding: 0.4rem 0.6rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; background: #fff; max-width: 280px; }
 
   @media (max-width: 620px){ .header h1 { font-size: 1.45rem; } }
 </style>
@@ -88,6 +89,7 @@
 
   <div class="camara">
     <button class="cam-btn" id="camBtn" onclick="toggleCamara()">📷 Activar cámara (modo sala)</button>
+    <select id="camSelect" onchange="onCamSelect()" style="display:none"></select>
     <span class="cam-status" id="camStatus">Cámara apagada · muestra un marcador a la cámara para activar su tramo</span>
     <video id="cam" autoplay playsinline muted style="display:none"></video>
     <canvas id="camCanvas" style="display:none"></canvas>
@@ -104,6 +106,7 @@
   <source src="assets/lapiz.mp3" type="audio/mpeg">
 </audio>
 
+<!-- Librería de detección ArUco (js-aruco2) -->
 <script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/cv.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/dictionaries.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/damianofalcioni/js-aruco2@master/src/aruco.js"></script>
@@ -140,8 +143,8 @@ function niceStep(x){
 function drawChart(){
   const data = DATA[competencia];
   const maxData = Math.max(...data);
-  const step = niceStep(maxData / 4);    
-  const yMax = Math.ceil(maxData / step) * step; 
+  const step = niceStep(maxData / 4);          // marcas redondas
+  const yMax = Math.ceil(maxData / step) * step; // tope redondo sobre el máximo
   const svg = document.getElementById('chart');
   const w = svg.clientWidth || 560, h = 400;
   const pad = { t: 46, r: 18, b: 50, l: 70 };
@@ -154,6 +157,7 @@ function drawChart(){
     <stop offset="0%" stop-color="#2563eb" stop-opacity="0.35"/>
     <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/></linearGradient></defs>`;
 
+  // zona destacada de puntajes altos (700+)
   const zx = xForScore(700);
   html += `<rect x="${zx}" y="${pad.t}" width="${pad.l+cW-zx}" height="${cH}" fill="#f59e0b" opacity="0.07"/>`;
   html += `<line x1="${zx}" x2="${zx}" y1="${pad.t}" y2="${pad.t+cH}" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>`;
@@ -174,6 +178,7 @@ function drawChart(){
   html += `<path d="${areaPath}" fill="url(#grad)"/>`;
   html += `<path class="line-path" d="${linePath}"/>`;
 
+  // línea de referencia del promedio
   const avg = AVG[competencia];
   const ax = xForScore(avg);
   html += `<line x1="${ax}" x2="${ax}" y1="${pad.t}" y2="${pad.t+cH}" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>`;
@@ -188,7 +193,7 @@ function drawChart(){
   for (let k=0;k<LABELS.length;k++){
     html += `<circle class="dot" id="dot-${k}" cx="${pts[k].x}" cy="${pts[k].y}" r="4.5"/>`;
   }
-
+  // banda vertical por tramo: el sonido se dispara al entrar a la columna, no solo sobre el punto
   for (let k=0;k<LABELS.length;k++){
     const left = Math.max(pad.l, pad.l + (k-0.5)*stepX);
     const right = Math.min(pad.l+cW, pad.l + (k+0.5)*stepX);
@@ -268,32 +273,81 @@ function setCompetencia(c){
   document.getElementById('btnClec').classList.toggle('active', c==='clec');
   drawChart();
 }
+
+/* ===== Cámara + detección ArUco (modo sala) =====
+   Cada marcador ArUco (ID 0 a 8) corresponde a un tramo de puntaje.
+   Al mostrarlo a la cámara, se activa ese tramo y suena el lápiz. */
 let camStream = null, detector = null, rafId = null, currentMarker = null;
+let selectedDeviceId = null;   // cámara elegida (ej. la externa conectada por USB)
 
 function toggleCamara(){
   if (camStream) { stopCamara(); } else { startCamara(); }
 }
-function startCamara(){
+async function startCamara(){
   const v = document.getElementById('cam');
   const status = document.getElementById('camStatus');
   if (typeof AR === 'undefined'){ status.textContent = 'No se cargó la librería de detección (revisa tu conexión).'; return; }
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(s => {
-      camStream = s; v.srcObject = s; v.style.display = 'block'; v.play();
-      detector = detector || new AR.Detector({ dictionaryName: 'ARUCO' });
-      document.getElementById('camBtn').textContent = '⏹ Apagar cámara';
-      status.textContent = 'Buscando marcadores…';
-      loopCamara();
-    })
-    .catch(() => { status.textContent = 'No se pudo abrir la cámara (debe ser https y dar permiso).'; });
+  try {
+    const constraints = selectedDeviceId
+      ? { video: { deviceId: { exact: selectedDeviceId } } }
+      : { video: true };
+    const s = await navigator.mediaDevices.getUserMedia(constraints);
+    camStream = s; v.srcObject = s; v.style.display = 'block'; v.play();
+    await populateCameras();
+    detector = detector || new AR.Detector({ dictionaryName: 'ARUCO' });
+    document.getElementById('camBtn').textContent = '⏹ Apagar cámara';
+    status.textContent = 'Buscando marcadores…';
+    loopCamara();
+  } catch(e){
+    status.textContent = 'No se pudo abrir la cámara (debe ser https y dar permiso).';
+  }
+}
+async function populateCameras(){
+  const sel = document.getElementById('camSelect');
+  if (!sel) return;
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const cams = devices.filter(d => d.kind === 'videoinput');
+  sel.innerHTML = '';
+  cams.forEach((d, i) => {
+    const o = document.createElement('option');
+    o.value = d.deviceId;
+    o.textContent = d.label || ('Cámara ' + (i + 1));
+    sel.appendChild(o);
+  });
+  // recordar la elegida; si no hay, deja la que está en uso
+  const cur = camStream && camStream.getVideoTracks()[0];
+  if (!selectedDeviceId && cur && cur.getSettings) selectedDeviceId = cur.getSettings().deviceId;
+  if (selectedDeviceId) sel.value = selectedDeviceId;
+  sel.style.display = cams.length > 1 ? 'inline-block' : 'none';
+}
+function onCamSelect(){
+  selectedDeviceId = document.getElementById('camSelect').value;
+  if (camStream){ stopCamara(); startCamara(); }   // reinicia con la cámara elegida
 }
 function stopCamara(){
   if (rafId) cancelAnimationFrame(rafId);
   if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   currentMarker = null; deactivate();
   const v = document.getElementById('cam'); v.style.display = 'none';
   document.getElementById('camBtn').textContent = '📷 Activar cámara (modo sala)';
   document.getElementById('camStatus').textContent = 'Cámara apagada · muestra un marcador a la cámara para activar su tramo';
+}
+// lee el tooltip en voz alta al escanear
+function speakTramo(k){
+  if (!('speechSynthesis' in window)) return;
+  const data = DATA[competencia];
+  const total = data.reduce((a,b)=>a+b,0);
+  const share = (data[k]/total*100).toFixed(0);
+  const below = data.slice(0,k).reduce((a,b)=>a+b,0);
+  const pctBelow = (below/total*100).toFixed(0);
+  const prueba = competencia === 'mate' ? 'Matemática' : 'Lenguaje';
+  const rango = LABELS[k].replace('–',' a ');
+  const txt = `${prueba}. Tramo ${rango} puntos. ${data[k].toLocaleString('es-CL')} estudiantes, ${share} por ciento del total. Supera al ${pctBelow} por ciento de quienes rindieron.`;
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang = 'es-ES'; u.rate = 1;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
 }
 function loopCamara(){
   const v = document.getElementById('cam'), c = document.getElementById('camCanvas');
@@ -304,21 +358,22 @@ function loopCamara(){
     const img = ctx.getImageData(0, 0, c.width, c.height);
     let markers = [];
     try { markers = detector.detect(img); } catch(e) {}
-
+    // dos marcadores a la vez: el del PROFESOR (prueba) y el del TRAMO
     let compSel = null, tramoId = null;
     for (const m of markers){
-      if (m.id === 10) compSel = 'mate';      
-      else if (m.id === 11) compSel = 'clec';  
-      else if (m.id >= 0 && m.id < LABELS.length) tramoId = m.id;
+      if (m.id === 10) compSel = 'mate';        // marcador profesor: Matemática
+      else if (m.id === 11) compSel = 'clec';   // marcador profesor: Lenguaje
+      else if (m.id >= 0 && m.id < LABELS.length) tramoId = m.id; // marcador de tramo
     }
-
+    // si el marcador del profesor cambia la prueba seleccionada
     if (compSel && compSel !== competencia){ setCompetencia(compSel); currentMarker = null; }
+    // marcador del tramo -> activa y muestra percentil
     if (tramoId !== currentMarker){
       currentMarker = tramoId;
       const status = document.getElementById('camStatus');
       const prueba = competencia === 'mate' ? 'Matemática' : 'Lenguaje';
       if (tramoId === null){ deactivate(); status.textContent = 'Prueba: ' + prueba + ' · muestra un marcador de tramo'; }
-      else { activate(tramoId); status.textContent = prueba + ' · tramo ' + LABELS[tramoId] + ' pts'; }
+      else { activate(tramoId); speakTramo(tramoId); status.textContent = prueba + ' · tramo ' + LABELS[tramoId] + ' pts'; }
     }
   }
   rafId = requestAnimationFrame(loopCamara);
